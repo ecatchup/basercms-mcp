@@ -13,14 +13,12 @@
   "devDependencies": {
     "@types/node": "^24.0.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.15.1",
     "@ryuring/basercms-js-sdk": "^0.0.13",
-    "@types/express": "^5.0.3",
     "dotenv": "^17.2.0",
-    "express": "^5.1.0",
     "openai": "^5.9.2"
   }
 }

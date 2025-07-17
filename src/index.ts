@@ -1,31 +1,17 @@
-import express, { Request, Response } from 'express';
 import { config } from 'dotenv';
 import { ApiClient, addBlogPost, getBlogPosts } from '@ryuring/basercms-js-sdk';
 import OpenAI from 'openai';
 
 config();
 
-const app = express();
-app.use(express.json());
+// 標準入力からMCPリクエスト(JSON)を受け取り、標準出力にレスポンスを返す
+process.stdin.setEncoding('utf8');
 
-// 記事一覧取得API
-app.get('/articles', async (_req: Request, res: Response) => {
-  try {
-    const apiClient = new ApiClient();
-    await apiClient.login();
-    const posts = await getBlogPosts(apiClient, Number(process.env.BLOG_CONTENT_ID));
-    res.json(posts);
-  } catch (e: any) {
-    res.status(500).json({ message: e.message });
-  }
-});
-
-// 記事追加API
-app.post('/articles', async (req: Request, res: Response) => {
-  try {
-    const { title, detail: reqDetail } = req.body;
+async function handleRequest(input: any) {
+  if (input.action === 'addArticle') {
+    const { title, detail: reqDetail } = input;
     if (!title) {
-      return res.status(400).json({ message: 'titleは必須です' });
+      return { error: 'titleは必須です' };
     }
     let detail = reqDetail;
     let content = '';
@@ -76,18 +62,33 @@ app.post('/articles', async (req: Request, res: Response) => {
       eye_catch: '',
       posted,
     } as any);
-    res.json(result);
-  } catch (e: any) {
-    res.status(500).json({ message: e.message });
+    return result;
+  } else if (input.action === 'getArticles') {
+    const apiClient = new ApiClient();
+    await apiClient.login();
+    const posts = await getBlogPosts(apiClient, Number(process.env.BLOG_CONTENT_ID));
+    return posts;
+  } else if (input.action === 'health') {
+    return { status: 'ok' };
+  } else {
+    return { error: 'unknown action' };
   }
-});
+}
 
-// ヘルスチェック
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok' });
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`MCPサーバー起動: http://localhost:${port}`);
+let buffer = '';
+process.stdin.on('data', async (chunk) => {
+  buffer += chunk;
+  let boundary = buffer.indexOf('\n');
+  while (boundary !== -1) {
+    const line = buffer.slice(0, boundary);
+    buffer = buffer.slice(boundary + 1);
+    try {
+      const input = JSON.parse(line);
+      const result = await handleRequest(input);
+      process.stdout.write(JSON.stringify(result) + '\n');
+    } catch (e: any) {
+      process.stdout.write(JSON.stringify({ error: e.message }) + '\n');
+    }
+    boundary = buffer.indexOf('\n');
+  }
 });
