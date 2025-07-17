@@ -8,6 +8,37 @@ config();
 process.stdin.setEncoding('utf8');
 
 async function handleRequest(input: any) {
+  if (input.action === 'help' || input.action === 'rpc.discover') {
+    return {
+      actions: [
+        {
+          name: 'addArticle',
+          description: 'ブログ記事を追加します。title（必須）、detail（省略可）を指定できます。',
+          params: ['title', 'detail?']
+        },
+        {
+          name: 'getArticles',
+          description: 'ブログ記事一覧を取得します。',
+          params: []へるぷ　
+        },
+        {
+          name: 'health',
+          description: 'サーバーヘルスチェック',
+          params: []
+        },
+        {
+          name: 'help',
+          description: 'サポートしているアクション一覧を返します',
+          params: []
+        },
+        {
+          name: 'rpc.discover',
+          description: 'MCPクライアント向けアクション一覧',
+          params: []
+        }
+      ]
+    };
+  }
   if (input.action === 'addArticle') {
     const { title, detail: reqDetail } = input;
     if (!title) {
