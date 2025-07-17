@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "basercms-mcp",
   "version": "1.0.0",
   "description": "",
@@ -15,6 +16,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.1",
     "@ryuring/basercms-js-sdk": "^0.0.13",
     "@types/express": "^5.0.3",
     "dotenv": "^17.2.0",
