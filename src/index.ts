@@ -19,7 +19,7 @@ async function handleRequest(input: any) {
         {
           name: 'getArticles',
           description: 'ブログ記事一覧を取得します。',
-          params: []へるぷ　
+          params: []
         },
         {
           name: 'health',
