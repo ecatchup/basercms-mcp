@@ -1,15 +1,23 @@
 {
   "type": "module",
-  "name": "basercms-mcp",
+  "name": "@ryuring/basercms-mcp",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "baserCMS の MCPサーバー",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ryuring/basercms-mcp.git"
+  },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "ryuring",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ryuring/basercms-mcp/issues"
+  },
+  "homepage": "https://github.com/ryuring/basercms-mcp#readme",
   "devDependencies": {
     "@types/node": "^24.0.14",
     "ts-node": "^10.9.2",
