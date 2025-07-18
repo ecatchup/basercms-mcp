@@ -23,7 +23,6 @@ cp .env.example .env
 
 必要な環境変数:
 - `OPENAI_API_KEY`: OpenAIのAPIキー
-- `BLOG_CONTENT_ID`: baserCMSのブログコンテンツID
 - `API_BASE_URL`: baserCMS APIのベースURL
 - `API_USER`: baserCMS APIのユーザー名（メールアドレス）
 - `API_PASSWORD`: baserCMS APIのパスワード

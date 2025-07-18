@@ -1,9 +1,9 @@
 import { config } from 'dotenv';
-import { ApiClient, addBlogPost } from '@ryuring/basercms-js-sdk';
+import { ApiClient, addBlogPost, getUserByEmail, getBlogCategories, getBlogContents } from '@ryuring/basercms-js-sdk';
 import OpenAI from 'openai';
-import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
+import axios from 'axios';
 // 高レベル API
 // @ts-ignore 型定義が見つからないため無視
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -16,7 +16,7 @@ config();
  * 環境変数の検証
  */
 function validateEnv() {
-  const requiredEnvVars = ['OPENAI_API_KEY', 'BLOG_CONTENT_ID', 'API_BASE_URL', 'API_USER', 'API_PASSWORD'];
+  const requiredEnvVars = ['OPENAI_API_KEY', 'API_BASE_URL', 'API_USER', 'API_PASSWORD'];
   const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
   
   if (missingEnvVars.length > 0) {
@@ -29,7 +29,6 @@ function validateEnv() {
       const envSample = 
 `# 必須の環境変数
 OPENAI_API_KEY=your_openai_api_key_here
-BLOG_CONTENT_ID=1
 
 # baserCMS API設定
 API_BASE_URL=https://localhost/
@@ -73,20 +72,25 @@ async function main() {
   server.registerTool(
     'addBlogPost',
     {
-      title: 'ブログ記事を追加',
       description: 'ブログ記事を追加します',
-      inputSchema: z.object({
-        title: z.string(),
-        detail: z.string().optional(),
-        name: z.string().optional().default('')
-      }) as any
+      inputSchema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: '記事のタイトル' },
+          detail: { type: 'string', description: '記事の詳細内容' },
+          email: { type: 'string', description: '投稿者のメールアドレス' },
+          category: { type: 'string', description: 'カテゴリ名' },
+          blog_content: { type: 'string', description: 'ブログコンテンツ名' }
+        }
+      } as any
     },
-    async (input: { title?: string; detail?: string; name?: string } = {}, params?: any) => {
-      // 柔軟にtitleを取得（input.title優先、なければparams.title）
-      const title = input.title ?? (params && params.title);
-      let detail = input.detail ?? (params && params.detail);
-      // params.nameがundefinedの場合は空文字に初期化
-      if (params && typeof params.name === 'undefined') params.name = '';
+    async (input: { title?: string; detail?: string; name?: string; email?: string; category?: string; blog_content?: string } = {}) => {
+      const title = input.title;
+      let detail = input.detail;
+      const email = input.email;
+      const category = input.category;
+      const blogContent = input.blog_content;
+      
       if (!title) {
         throw new Error('titleが指定されていません');
       }
@@ -95,7 +99,7 @@ async function main() {
       if (!detail) {
         console.log('本文が空のため、AIで生成します');
         const completion = await openai.chat.completions.create({
-          model: 'gpt-4.1',
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: 'あなたは日本語で分かりやすく解説するAIです。出力は必ずHTMLタグを使用してください。マークダウン記法（#、##、**、-など）は一切使用しないでください。' },
             { role: 'user', content: `${title} について、400文字程度で詳しく説明してください。見出しは<h4>、<h5>タグ、強調は<strong>タグ、リストは<ul><li>タグ、段落は<p>タグを使用してHTMLで記述してください。マークダウン記法は絶対に使用しないでください。` }
@@ -107,7 +111,7 @@ async function main() {
       }
       console.log('本文の要約を生成中...');
       const summaryCompletion = await openai.chat.completions.create({
-        model: 'gpt-4.1',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'あなたは日本語で要約するAIです。' },
           { role: 'user', content: `次の内容を100文字以内で要約してください。\n\n${detail}` }
@@ -127,19 +131,91 @@ async function main() {
         throw error;
       }
       
+      // emailが指定されている場合はユーザーIDを取得、そうでなければデフォルト値を使用
+      let userId = 1;
+      if (email) {
+        try {
+          console.log(`ユーザー情報を取得中: ${email}`);
+          const user = await getUserByEmail(apiClient, email);
+          if (user && user.id) {
+            console.log(`ユーザーが見つかりました: ID=${user.id}, Name=${user.name || 'N/A'}`);
+            userId = user.id;
+          } else {
+            console.warn(`指定されたemail (${email}) のユーザーが見つかりませんでした。デフォルトのuser_id=1を使用します。`);
+          }
+        } catch (error) {
+          console.error('ユーザー情報の取得に失敗しました:', error);
+          console.warn('デフォルトのuser_id=1を使用します。');
+        }
+      }
+
+      // blog_contentが指定されている場合はブログコンテンツIDを取得、そうでなければデフォルト値1を使用
+      let blogContentId = 1;
+      if (blogContent) {
+        try {
+          console.log(`ブログコンテンツ情報を取得中: ${blogContent}`);
+          const blogContents = await getBlogContents(apiClient, { admin: true, title: blogContent });
+          console.log('getBlogContents結果:', JSON.stringify(blogContents, null, 2));
+          if (blogContents && Array.isArray(blogContents)) {
+            console.log(`取得されたブログコンテンツ数: ${blogContents.length}`);
+            blogContents.forEach((content: any, index: number) => {
+              console.log(`ブログコンテンツ[${index}]: ID=${content.id}, Name=${content.name}, Title=${content.title}`);
+            });
+            const foundBlogContent = blogContents.find((content: any) => 
+              content.name === blogContent || content.title === blogContent
+            );
+            if (foundBlogContent) {
+              console.log(`ブログコンテンツが見つかりました: ID=${foundBlogContent.id}, Name=${foundBlogContent.name}`);
+              blogContentId = foundBlogContent.id;
+            } else {
+              console.warn(`指定されたblog_content (${blogContent}) が見つかりませんでした。デフォルトのblog_content_id=1を使用します。`);
+            }
+          } else {
+            console.warn('getBlogContentsの結果が配列ではありません:', blogContents);
+          }
+        } catch (error) {
+          console.error('ブログコンテンツ情報の取得に失敗しました:', error);
+          console.warn('デフォルトのblog_content_id=1を使用します。');
+        }
+      }
+
+      // categoryが指定されている場合はカテゴリIDを取得、そうでなければデフォルト値を使用
+      let categoryId = 0;
+      if (category) {
+        try {
+          console.log(`カテゴリ情報を取得中: ${category}`);
+          console.log('getBlogCategories呼び出し - blogContentId:', blogContentId, 'options:', { title: category });
+          const categories = await getBlogCategories(apiClient, blogContentId, { title: category });
+          if (categories && Array.isArray(categories)) {
+            const foundCategory = categories.find((cat: any) => 
+              cat.name === category || cat.title === category
+            );
+            if (foundCategory) {
+              console.log(`カテゴリが見つかりました: ID=${foundCategory.id}, Name=${foundCategory.name}`);
+              categoryId = foundCategory.id;
+            } else {
+              console.warn(`指定されたcategory (${category}) が見つかりませんでした。デフォルトのcategory_id=1を使用します。`);
+            }
+          }
+        } catch (error) {
+          console.error('カテゴリ情報の取得に失敗しました:', error);
+          console.warn('デフォルトのcategory_id=1を使用します。');
+        }
+      }
+      
       const posted = new Date().toISOString().slice(0, 19).replace('T', ' ');
       console.log('記事を投稿中...');
       try {
         const result = await addBlogPost(apiClient, {
-        blog_content_id: Number(process.env.BLOG_CONTENT_ID),
+        blog_content_id: blogContentId,
         no: null,
-        name: params && typeof params.name === 'string' ? params.name : '',
+        name: '',
         title,
         content,
         detail,
-        blog_category_id: 1,
-        user_id: 1,
-        status: 1,
+        blog_category_id: categoryId,
+        user_id: userId,
+        status: 0,
         eye_catch: '',
         posted
       } as any);
@@ -158,9 +234,11 @@ async function main() {
   server.registerTool(
     'serverInfo',
     {
-      title: 'サーバー情報',
       description: 'サーバーのバージョンや環境情報を返します',
-      inputSchema: {}
+      inputSchema: {
+        type: 'object',
+        properties: {}
+      } as any
     },
     async () => ({
       content: [{ type: 'text' as const, text: JSON.stringify({
@@ -174,15 +252,17 @@ async function main() {
   server.registerTool(
     'tools/list',
     {
-      title: '利用可能なツール一覧',
       description: 'このサーバーで利用できるツール一覧を返します',
-      inputSchema: {}
+      inputSchema: {
+        type: 'object',
+        properties: {}
+      } as any
     },
     async () => {
       return {
         content: [{ 
           type: 'text' as const, 
-          text: '利用可能なツール:\n1. addArticle - ブログ記事を追加します\n2. serverInfo - サーバー情報を返します\n3. tools/list - このツール一覧を表示します'
+          text: '利用可能なツール:\n1. addBlogPost - ブログ記事を追加します\n2. serverInfo - サーバー情報を返します\n3. tools/list - このツール一覧を表示します'
         }]
       };
     }

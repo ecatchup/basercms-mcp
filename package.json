@@ -24,12 +24,11 @@
   "devDependencies": {
     "@types/node": "^24.0.14",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "@ryuring/basercms-js-sdk": "^0.0.13",
+    "@ryuring/basercms-js-sdk": "^0.0.19",
     "axios": "^1.10.0",
     "dotenv": "^17.2.0",
     "openai": "^5.9.2"
