@@ -1,7 +1,6 @@
 import { config } from 'dotenv';
 import { ApiClient, addBlogPost, getUserByEmail, getBlogCategories, getBlogContents } from '@ryuring/basercms-js-sdk';
 import OpenAI from 'openai';
-import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 
@@ -11,56 +10,20 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 // @ts-ignore 型定義が見つからないため無視
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-config();
+// CommonJS互換の __filename, __dirname を利用
+const _filename: string = (typeof module !== 'undefined' && module.filename ? module.filename : process.argv[1]);
+const _customFilename: string = typeof _filename !== 'undefined' ? _filename : process.argv[1];
+const _customDirname: string = path.dirname(_customFilename);
+const projectRoot = path.resolve(_customDirname, '..');
+const envFilePath = path.join(projectRoot, '.env');
 
-/**
- * 環境変数の検証
- */
-function validateEnv() {
-  const requiredEnvVars = ['OPENAI_API_KEY', 'API_BASE_URL', 'API_USER', 'API_PASSWORD'];
-  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-  
-  if (missingEnvVars.length > 0) {
-    console.error('必須の環境変数が設定されていません:', missingEnvVars.join(', '));
-    console.error('.env ファイルを確認してください');
-    
-    // .env ファイルが存在しない場合はサンプルを作成
-    const envFilePath = path.join(process.cwd(), '.env');
-    if (!fs.existsSync(envFilePath)) {
-      const envSample = 
-`# 必須の環境変数
-OPENAI_API_KEY=your_openai_api_key_here
-
-# baserCMS API設定
-API_BASE_URL=https://localhost/
-API_USER=user@example.com
-API_PASSWORD=yourpassword
-`;
-      try {
-        fs.writeFileSync(envFilePath + '.example', envSample);
-        console.log('.env.example ファイルを作成しました。このファイルを .env にリネームして値を設定してください。');
-      } catch (error) {
-        console.error('.env.example ファイルの作成に失敗しました:', error);
-      }
-    }
-    
-    return false;
-  }
-  
-  return true;
-}
+// .envファイルを読み込み
+config({ path: envFilePath, debug: false, quiet: true });
 
 /**
  * メインエントリ
  */
 async function main() {
-  // 環境変数の検証
-  if (!validateEnv()) {
-    console.error('環境変数の設定エラーにより、プログラムを終了します。');
-    process.exit(1);
-  }
-  
-  console.log('MCPサーバーを初期化しています...');
   
   // MCP サーバーを初期化
   const server = new McpServer({
@@ -92,10 +55,8 @@ async function main() {
       if (!title) {
         throw new Error('titleが指定されていません');
       }
-      console.log(`記事追加リクエスト受信: タイトル "${title}"`);
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       if (!detail) {
-        console.log('本文が空のため、AIで生成します');
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o-mini',
           messages: [
@@ -105,9 +66,7 @@ async function main() {
           max_tokens: 1000
         });
         detail = completion.choices[0]?.message?.content ?? '';
-        console.log('AI生成された本文:', detail.substring(0, 50) + '...');
       }
-      console.log('本文の要約を生成中...');
       const summaryCompletion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -117,15 +76,10 @@ async function main() {
         max_tokens: 200
       });
       const content = summaryCompletion.choices[0]?.message?.content ?? '';
-      console.log('生成された要約:', content);
-      
-      console.log('baserCMS APIへログイン中...');
       const apiClient = new ApiClient();
       try {
         await apiClient.login();
-        console.log('APIログイン成功');
       } catch (error) {
-        console.error('APIログイン失敗:', error);
         throw error;
       }
       
@@ -133,17 +87,11 @@ async function main() {
       let userId = 1;
       if (email) {
         try {
-          console.log(`ユーザー情報を取得中: ${email}`);
           const user = await getUserByEmail(apiClient, email);
           if (user && user.id) {
-            console.log(`ユーザーが見つかりました: ID=${user.id}, Name=${user.name || 'N/A'}`);
             userId = user.id;
-          } else {
-            console.warn(`指定されたemail (${email}) のユーザーが見つかりませんでした。デフォルトのuser_id=1を使用します。`);
           }
         } catch (error) {
-          console.error('ユーザー情報の取得に失敗しました:', error);
-          console.warn('デフォルトのuser_id=1を使用します。');
         }
       }
 
@@ -160,13 +108,9 @@ async function main() {
         
           if (blogContents && Array.isArray(blogContents) && blogContents.length > 0) {
               blogContentId = blogContents[0].id;
-              console.log(`指定されたblog_content (${blogContent}) が見つかりました: ID=${blogContentId}`);
           } else {
-            console.warn('ブログコンテンツ情報が取得できませんでした。デフォルトのblog_content_id=1を使用します。');
           }
         } catch (error) {
-          console.error('ブログコンテンツ情報の取得に失敗しました:', error);
-          console.warn('デフォルトのblog_content_id=1を使用します。');
         }
       }
 
@@ -181,13 +125,9 @@ async function main() {
             );
             if (foundCategory) {
               categoryId = foundCategory.id;
-            } else {
-              console.warn(`指定されたcategory (${category}) が見つかりませんでした。デフォルトのcategory_id=1を使用します。`);
             }
           }
         } catch (error) {
-          console.error('カテゴリ情報の取得に失敗しました:', error);
-          console.warn('デフォルトのcategory_id=1を使用します。');
         }
       }
       
@@ -206,12 +146,10 @@ async function main() {
         eye_catch: '',
         posted
       } as any);
-      console.log('記事投稿成功:', JSON.stringify(result));
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result) }]
       };
       } catch (error) {
-        console.error('記事投稿エラー:', error);
         throw error;
       }
     }
@@ -237,7 +175,7 @@ async function main() {
 
   // tools/list ツール一覧
   server.registerTool(
-    'tools/list',
+    'toolsList',
     {
       description: 'このサーバーで利用できるツール一覧を返します',
       inputSchema: {
@@ -249,15 +187,11 @@ async function main() {
       return {
         content: [{ 
           type: 'text' as const, 
-          text: '利用可能なツール:\n1. addBlogPost - ブログ記事を追加します\n2. serverInfo - サーバー情報を返します\n3. tools/list - このツール一覧を表示します'
+          text: '利用可能なツール:\n1. addBlogPost - ブログ記事を追加します\n2. serverInfo - サーバー情報を返します\n3. toolsList - このツール一覧を表示します'
         }]
       };
     }
   );
-
-  // Stdio で接続
-  // 接続前にログ出力
-  console.log('MCPサーバー接続を開始します...');
   
   // StdioServerTransportのインスタンス化（オプションなし）
   const stdioTransport = new StdioServerTransport();
@@ -265,9 +199,7 @@ async function main() {
   // エラーハンドリングを追加
   try {
     await server.connect(stdioTransport);
-    console.log('MCPサーバー接続完了');
   } catch (error) {
-    console.error('MCPサーバー接続エラー:', error);
     throw error;
   }
 }
