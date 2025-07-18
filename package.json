@@ -4,7 +4,11 @@
   "description": "baserCMS の MCPサーバー",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc --watch"
   },
   "repository": {
     "type": "git",
@@ -26,6 +30,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
     "@ryuring/basercms-js-sdk": "^0.0.13",
+    "axios": "^1.10.0",
     "dotenv": "^17.2.0",
     "openai": "^5.9.2"
   }
