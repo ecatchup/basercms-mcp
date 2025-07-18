@@ -3,7 +3,8 @@ import { ApiClient, addBlogPost, getUserByEmail, getBlogCategories, getBlogConte
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
+import { z } from 'zod';
+
 // 高レベル API
 // @ts-ignore 型定義が見つからないため無視
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -74,15 +75,12 @@ async function main() {
     {
       description: 'ブログ記事を追加します',
       inputSchema: {
-        type: 'object',
-        properties: {
-          title: { type: 'string', description: '記事のタイトル' },
-          detail: { type: 'string', description: '記事の詳細内容' },
-          email: { type: 'string', description: '投稿者のメールアドレス' },
-          category: { type: 'string', description: 'カテゴリ名' },
-          blog_content: { type: 'string', description: 'ブログコンテンツ名' }
-        }
-      } as any
+        title:        z.string(),
+        detail:       z.string().optional(),
+        email:        z.string().email().optional(),
+        category:     z.string().optional(),
+        blog_content: z.string().optional()
+      }
     },
     async (input: { title?: string; detail?: string; name?: string; email?: string; category?: string; blog_content?: string } = {}) => {
       const title = input.title;
@@ -153,25 +151,18 @@ async function main() {
       let blogContentId = 1;
       if (blogContent) {
         try {
-          console.log(`ブログコンテンツ情報を取得中: ${blogContent}`);
-          const blogContents = await getBlogContents(apiClient, { admin: true, title: blogContent });
-          console.log('getBlogContents結果:', JSON.stringify(blogContents, null, 2));
-          if (blogContents && Array.isArray(blogContents)) {
-            console.log(`取得されたブログコンテンツ数: ${blogContents.length}`);
-            blogContents.forEach((content: any, index: number) => {
-              console.log(`ブログコンテンツ[${index}]: ID=${content.id}, Name=${content.name}, Title=${content.title}`);
-            });
-            const foundBlogContent = blogContents.find((content: any) => 
-              content.name === blogContent || content.title === blogContent
-            );
-            if (foundBlogContent) {
-              console.log(`ブログコンテンツが見つかりました: ID=${foundBlogContent.id}, Name=${foundBlogContent.name}`);
-              blogContentId = foundBlogContent.id;
-            } else {
-              console.warn(`指定されたblog_content (${blogContent}) が見つかりませんでした。デフォルトのblog_content_id=1を使用します。`);
-            }
+          let blogContents = null;
+          try {
+            blogContents = await getBlogContents(apiClient, {admin: true, title: blogContent});
+          } catch (getIndexError) {
+            blogContents = null;
+          }
+        
+          if (blogContents && Array.isArray(blogContents) && blogContents.length > 0) {
+              blogContentId = blogContents[0].id;
+              console.log(`指定されたblog_content (${blogContent}) が見つかりました: ID=${blogContentId}`);
           } else {
-            console.warn('getBlogContentsの結果が配列ではありません:', blogContents);
+            console.warn('ブログコンテンツ情報が取得できませんでした。デフォルトのblog_content_id=1を使用します。');
           }
         } catch (error) {
           console.error('ブログコンテンツ情報の取得に失敗しました:', error);
@@ -183,15 +174,12 @@ async function main() {
       let categoryId = 0;
       if (category) {
         try {
-          console.log(`カテゴリ情報を取得中: ${category}`);
-          console.log('getBlogCategories呼び出し - blogContentId:', blogContentId, 'options:', { title: category });
-          const categories = await getBlogCategories(apiClient, blogContentId, { title: category });
+          const categories = await getBlogCategories(apiClient, blogContentId, { admin: true, title: category });
           if (categories && Array.isArray(categories)) {
             const foundCategory = categories.find((cat: any) => 
               cat.name === category || cat.title === category
             );
             if (foundCategory) {
-              console.log(`カテゴリが見つかりました: ID=${foundCategory.id}, Name=${foundCategory.name}`);
               categoryId = foundCategory.id;
             } else {
               console.warn(`指定されたcategory (${category}) が見つかりませんでした。デフォルトのcategory_id=1を使用します。`);
@@ -204,7 +192,6 @@ async function main() {
       }
       
       const posted = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      console.log('記事を投稿中...');
       try {
         const result = await addBlogPost(apiClient, {
         blog_content_id: blogContentId,
