@@ -160,10 +160,7 @@ async function main() {
     'serverInfo',
     {
       description: 'サーバーのバージョンや環境情報を返します',
-      inputSchema: {
-        type: 'object',
-        properties: {}
-      } as any
+      inputSchema: {}
     },
     async () => ({
       content: [{ type: 'text' as const, text: JSON.stringify({
@@ -171,26 +168,6 @@ async function main() {
         env: process.env.NODE_ENV ?? 'development'
       }) }]
     })
-  );
-
-  // tools/list ツール一覧
-  server.registerTool(
-    'toolsList',
-    {
-      description: 'このサーバーで利用できるツール一覧を返します',
-      inputSchema: {
-        type: 'object',
-        properties: {}
-      } as any
-    },
-    async () => {
-      return {
-        content: [{ 
-          type: 'text' as const, 
-          text: '利用可能なツール:\n1. addBlogPost - ブログ記事を追加します\n2. serverInfo - サーバー情報を返します\n3. toolsList - このツール一覧を表示します'
-        }]
-      };
-    }
   );
   
   // StdioServerTransportのインスタンス化（オプションなし）
