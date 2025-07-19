@@ -22,10 +22,17 @@ cp .env.example .env
 ```
 
 必要な環境変数:
-- `OPENAI_API_KEY`: OpenAIのAPIキー
+- `OPENAI_API_KEY`: OpenAIのAPIキー（省略可能 - 未設定時はAI生成をスキップ）
 - `API_BASE_URL`: baserCMS APIのベースURL
 - `API_USER`: baserCMS APIのユーザー名（メールアドレス）
 - `API_PASSWORD`: baserCMS APIのパスワード
+
+オプション環境変数（AI機能のカスタマイズ）:
+- `OPENAI_MODEL`: 使用するOpenAIモデル（デフォルト: gpt-3.5-turbo）
+- `DETAIL_MAX_AI_TOKENS`: 詳細説明生成の最大トークン数（デフォルト: 1000）
+- `SUMMARY_MAX_AI_TOKENS`: 要約生成の最大トークン数（デフォルト: 200）
+
+※ トークン数から文字数は自動計算されます（日本語: 1トークン ≈ 1.5文字）
 
 4. TypeScriptをコンパイル
 ```bash
