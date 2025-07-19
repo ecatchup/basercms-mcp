@@ -46,10 +46,10 @@ export const addBlogPostTool: ToolDefinition = {
     const content = await openaiService.generateSummary(detail);
     const apiClient = await createApiClient();
     
-    const userId = await this.getUserId(apiClient, email);
-    const blogContentId = await this.getBlogContentId(apiClient, blog_content);
+    const userId = await addBlogPostTool.getUserId(apiClient, email);
+    const blogContentId = await addBlogPostTool.getBlogContentId(apiClient, blog_content);
     
-    const categoryId = await this.getCategoryId(apiClient, blogContentId, category);
+    const categoryId = await addBlogPostTool.getCategoryId(apiClient, blogContentId, category);
     
     const posted = new Date().toISOString().slice(0, 19).replace('T', ' ');
     

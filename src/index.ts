@@ -13,6 +13,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { serverConfig } from './config/server';
 import { addBlogPostTool } from './tools/bc-blog/blog-posts';
 import { serverInfoTool } from './tools/system/server-info';
+import { addCustomFieldTool } from './tools/bc-costom-content/custom-fields';
 
 /**
  * メインエントリポイント
@@ -25,6 +26,7 @@ async function main() {
   // 全ツールを登録
   const allTools = [
     addBlogPostTool,
+    addCustomFieldTool,
     serverInfoTool
   ];
   
