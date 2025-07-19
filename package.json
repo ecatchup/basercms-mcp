@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "watch": "tsc --watch"
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "@ryuring/basercms-js-sdk": "^0.0.19",
+    "@ryuring/basercms-js-sdk": "^1.0.1",
     "axios": "^1.10.0",
     "dotenv": "^17.2.0",
     "openai": "^5.9.2"
