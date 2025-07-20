@@ -12,11 +12,11 @@ export const addBlogPostTool: ToolDefinition = {
   name: 'addBlogPost',
   description: 'ブログ記事を追加します',
   inputSchema: {
-    title: z.string(),
-    detail: z.string().optional(),
-    email: z.string().email().optional(),
-    category: z.string().optional(),
-    blog_content: z.string().optional()
+    title: z.string().describe('記事タイトル（必須）'),
+    detail: z.string().optional().describe('記事詳細（省略時はAIで生成）'),
+    email: z.string().email().optional().describe('ユーザーのメールアドレス（省略時はデフォルトユーザー）'),
+    category: z.string().optional().describe('カテゴリ名（省略時はカテゴリなし）'),
+    blog_content: z.string().optional().describe('ブログコンテンツ名（省略時はデフォルト）')
   },
   
   /**

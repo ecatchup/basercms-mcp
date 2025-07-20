@@ -8,8 +8,8 @@ export const addCustomFieldTool: ToolDefinition = {
   name: 'addCustomField',
   description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg',
   inputSchema: {
-    name: z.string().describe('フィールド名'),
-    title: z.string().describe('フィールドタイトル'),
+    name: z.string().describe('フィールド名（必須）'),
+    title: z.string().describe('フィールドタイトル（必須）'),
     type: z.enum([
       'BcCcAutoZip',
       'BcCcCheckbox',
@@ -28,19 +28,19 @@ export const addCustomFieldTool: ToolDefinition = {
       'BcCcText',
       'BcCcTextarea',
       'BcCcWysiwyg'
-    ]).describe('フィールドタイプ'),
+    ]).describe('フィールドタイプ（必須）'),
     source: z.string().optional().describe('選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）')
   },
+  
   /**
    * カスタムフィールドを追加するハンドラー
    * @param input 入力パラメータ
-   * @param input.model モデル名（必須）
    * @param input.name フィールド名（必須）
+   * @param input.title フィールドタイトル（必須）
    * @param input.type フィールドタイプ（必須）
-   * @param input.label ラベル（省略時はAIで生成）
-   * @param input.options オプション（typeがselect等の場合）
-   * @param input.email ユーザーのメールアドレス（省略時はデフォルトユーザー）
+   * @param input.source 選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）
    * @returns 作成されたカスタムフィールドの情報
+   * @throws エラーが発生した場合は例外をスロー
    */
   handler: async function(input: { name: string; title: string; type: string; source?: string; }) {
     const { name, title, type, source } = input;
