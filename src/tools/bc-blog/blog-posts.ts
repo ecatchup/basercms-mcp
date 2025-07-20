@@ -11,13 +11,13 @@ import { OpenAIService } from '../../utils/openai';
 export const addBlogPostTool: ToolDefinition = {
   name: 'addBlogPost',
   description: 'ブログ記事を追加します',
-  inputSchema: {
+  inputSchema: z.object({
     title: z.string(),
     detail: z.string().optional(),
     email: z.string().email().optional(),
     category: z.string().optional(),
     blog_content: z.string().optional()
-  },
+  }),
   
   /**
    * ブログ記事を追加するハンドラー

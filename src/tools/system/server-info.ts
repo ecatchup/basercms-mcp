@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { ToolDefinition } from '../../types/tool';
 
 /**
@@ -7,10 +8,7 @@ import { ToolDefinition } from '../../types/tool';
 export const serverInfoTool: ToolDefinition = {
   name: 'serverInfo',
   description: 'サーバーのバージョンや環境情報を返します',
-  inputSchema: {
-    type: 'object',
-    properties: {}
-  },
+  inputSchema: {},
   
   /**
    * サーバー情報を取得するハンドラー
@@ -21,7 +19,6 @@ export const serverInfoTool: ToolDefinition = {
       node: process.version,
       env: process.env.NODE_ENV ?? 'development'
     };
-    
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(serverInfo) }]
     };

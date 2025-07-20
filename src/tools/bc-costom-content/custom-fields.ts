@@ -1,34 +1,36 @@
 import { z } from 'zod';
 import { ToolDefinition } from '../../types/tool';
-import { OpenAIService } from '../../utils/openai';
+import { createApiClient } from '../../utils/api-client';
+import { addCustomField } from '@ryuring/basercms-js-sdk';
+import { ApiClient } from '@ryuring/basercms-js-sdk';
 
 export const addCustomFieldTool: ToolDefinition = {
   name: 'addCustomField',
   description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg',
-  inputSchema:  {
-  name: z.string().describe('フィールド名'),
-  title: z.string().describe('フィールドタイトル'),
-  type: z.enum([
-    'BcCcAutoZip',
-    'BcCcCheckbox',
-    'BcCcDate',
-    'BcCcDateTime',
-    'BcCcEmail',
-    'BcCcFile',
-    'BcCcHidden',
-    'BcCcMultiple',
-    'BcCcPassword',
-    'BcCcPref',
-    'BcCcRadio',
-    'BcCcRelated',
-    'BcCcSelect',
-    'BcCcTel',
-    'BcCcText',
-    'BcCcTextarea',
-    'BcCcWysiwyg'
-  ]).describe('フィールドタイプ'),
-  source: z.array(z.string()).optional().describe('選択肢（ラジオボタンやセレクトボックスの場合）')
-  },
+  inputSchema: z.object({
+    name: z.string().describe('フィールド名'),
+    title: z.string().describe('フィールドタイトル'),
+    type: z.enum([
+      'BcCcAutoZip',
+      'BcCcCheckbox',
+      'BcCcDate',
+      'BcCcDateTime',
+      'BcCcEmail',
+      'BcCcFile',
+      'BcCcHidden',
+      'BcCcMultiple',
+      'BcCcPassword',
+      'BcCcPref',
+      'BcCcRadio',
+      'BcCcRelated',
+      'BcCcSelect',
+      'BcCcTel',
+      'BcCcText',
+      'BcCcTextarea',
+      'BcCcWysiwyg'
+    ]).describe('フィールドタイプ'),
+    source: z.string().optional().describe('選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）')
+  }),
   /**
    * カスタムフィールドを追加するハンドラー
    * @param input 入力パラメータ
@@ -40,19 +42,19 @@ export const addCustomFieldTool: ToolDefinition = {
    * @param input.email ユーザーのメールアドレス（省略時はデフォルトユーザー）
    * @returns 作成されたカスタムフィールドの情報
    */
-  handler: async function(input: { name: string; title: string; type: string; source?: string[]; }) {
+  handler: async function(input: { name: string; title: string; type: string; source?: string; }) {
     const { name, title, type, source } = input;
     if (!name || !title || !type) {
       throw new Error('name, typeは必須です');
     }
-    const openaiService = new OpenAIService();
-    const result = {
+    const apiClient = await createApiClient();
+    const result = await addCustomField(apiClient, {
       name,
       title,
       type,
       status: 1,
       source
-    };
+    });
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result) }]
     };
