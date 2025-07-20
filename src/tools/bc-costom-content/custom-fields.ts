@@ -7,7 +7,7 @@ import { ApiClient } from '@ryuring/basercms-js-sdk';
 export const addCustomFieldTool: ToolDefinition = {
   name: 'addCustomField',
   description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg',
-  inputSchema: z.object({
+  inputSchema: {
     name: z.string().describe('フィールド名'),
     title: z.string().describe('フィールドタイトル'),
     type: z.enum([
@@ -30,7 +30,7 @@ export const addCustomFieldTool: ToolDefinition = {
       'BcCcWysiwyg'
     ]).describe('フィールドタイプ'),
     source: z.string().optional().describe('選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）')
-  }),
+  },
   /**
    * カスタムフィールドを追加するハンドラー
    * @param input 入力パラメータ
