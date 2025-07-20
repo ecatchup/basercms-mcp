@@ -1,0 +1,11 @@
+# はじめに
+このルールは basercms-mcpの開発について定めたものです。
+@modelcontextprotocol/typescript-sdk の バージョン 1.16.0 を使用して開発を行います。
+- 詳細は以下のリンクを参照してください。
+https://github.com/modelcontextprotocol/typescript-sdk/blob/1.16.0/README.md
+
+### inputSchema の定義について
+- `zod` を使用して定義します。
+- `zod` のバージョンは 3.23.8 を使用します。
+- `zod` の詳細は以下のリンクを参照してください。
+https://github.com/colinhacks/zod/blob/v3.23.8/README.md
