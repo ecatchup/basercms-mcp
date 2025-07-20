@@ -16,6 +16,7 @@ import { serverInfoTool } from './tools/system/server-info';
 import { addCustomFieldTool, getCustomFieldsTool } from './tools/bc-costom-content/custom-fields';
 import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
 import { addCustomContentTool } from './tools/bc-costom-content/custom-contents';
+import { addCustomEntryTool, getCustomEntriesTool } from './tools/bc-costom-content/custom-entries';
 
 /**
  * メインエントリポイント
@@ -31,7 +32,9 @@ async function main() {
     addCustomFieldTool,
     addCustomTableTool,
     addCustomContentTool,
+    addCustomEntryTool,
     getCustomFieldsTool,
+    getCustomEntriesTool,
     serverInfoTool
   ];
   
