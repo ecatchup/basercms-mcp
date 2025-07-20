@@ -14,6 +14,7 @@ import { serverConfig } from './config/server';
 import { addBlogPostTool } from './tools/bc-blog/blog-posts';
 import { serverInfoTool } from './tools/system/server-info';
 import { addCustomFieldTool, getCustomFieldsTool } from './tools/bc-costom-content/custom-fields';
+import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
 
 /**
  * メインエントリポイント
@@ -27,6 +28,7 @@ async function main() {
   const allTools = [
     addBlogPostTool,
     addCustomFieldTool,
+    addCustomTableTool,
     getCustomFieldsTool,
     serverInfoTool
   ];
