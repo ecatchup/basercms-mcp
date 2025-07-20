@@ -13,3 +13,7 @@ https://github.com/colinhacks/zod/blob/v3.23.8/README.md
 ## basercms-js-sdk の仕様について
 こちらも一緒に開発しているプロダクトなので、こちら側に問題がある可能性もあります。
 その際は、そちらの問題も考慮し、basercms-js-sdk 側の修正も試みます。
+
+## カスタムコンテンツの仕様について
+カスタムコンテンツの資料はこちらを参照してください。
+https://baserproject.github.io/5/functions/bc-custom-content/
