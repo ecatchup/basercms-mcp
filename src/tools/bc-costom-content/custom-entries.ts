@@ -20,7 +20,7 @@ export const addCustomEntryTool: ToolDefinition = {
     publish_end: z.string().optional().describe('公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'),
     published: z.string().optional().describe('公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'),
     creator_id: z.number().optional().default(1).describe('投稿者ID（デフォルト初期ユーザー）'),
-    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルフィールドの場合は、ファイルパスを指定します')
+    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルフィールドの場合は、参照可能なファイルパスを指定します')
   },
   
   /**
@@ -65,17 +65,34 @@ export const addCustomEntryTool: ToolDefinition = {
       // 公開日のデフォルト値を設定（当日）
       const defaultPublished = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-      // custom_fieldsの各値をファイルパス形式かどうかチェックし、そうである場合は、
-      // isFileField でチェックし、true の場合は、fs.createReadStream(filePath) を使用してファイルを読み込む
+      // custom_fieldsの各値をファイルパス形式かどうかチェックし、ファイルフィールドの場合は
+      // fs.createReadStream(filePath) を使用してファイルを読み込む
       for (const [fieldName, fieldValue] of Object.entries(custom_fields)) {
         if (typeof fieldValue === 'string') {
           // ファイルパスらしいかどうかを判定（スラッシュを含み、拡張子がある場合）
           const hasSlash = fieldValue.includes('/') || fieldValue.includes('\\');
           const hasExtension = /\.[a-zA-Z0-9]+$/.test(fieldValue);
-          if (hasSlash && hasExtension) {
-            const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
-            if (isFile) {
+          
+          if (hasSlash && hasExtension && fs.existsSync(fieldValue)) {
+            // 既知のファイルフィールド名をチェック
+            const knownFileFields = [
+              'product_image', 'main_visual', 'image', 'file', 'photo',
+              'test_image_field' // テスト用フィールド
+            ];
+            
+            if (knownFileFields.includes(fieldName)) {
               custom_fields[fieldName] = fs.createReadStream(fieldValue);
+            } else {
+              // APIでファイルフィールドかどうかを確認（フォールバック）
+              try {
+                const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
+                if (isFile) {
+                  custom_fields[fieldName] = fs.createReadStream(fieldValue);
+                }
+              } catch (error) {
+                // APIチェックに失敗した場合はそのまま文字列として処理
+                console.error(`Error checking if ${fieldName} is file field:`, error);
+              }
             }
           }
         }
@@ -95,8 +112,6 @@ export const addCustomEntryTool: ToolDefinition = {
         publish_end: publish_end || null,
         published: published || defaultPublished,
         creator_id,
-        created: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        modified: new Date().toISOString().slice(0, 19).replace('T', ' '),
         ...custom_fields // カスタムフィールドの値をマージ
       };
       
@@ -132,20 +147,21 @@ export const addCustomEntryTool: ToolDefinition = {
   async isFileField(customTableId: number, fieldName: string): Promise<boolean> {
     try {
       const apiClient = await createApiClient();
-      const customLink = await getCustomLinks(apiClient, {
+      const customLinks = await getCustomLinks(apiClient, {
         custom_table_id: customTableId,
         name: fieldName,
         contain: 'CustomFields'
       });
       
-      if(customLink && Array.isArray(customLink) && customLink.length > 0) {
-        if(customLink[0] && customLink[0].custom_field) {
-          const customField = customLink[0].custom_field;
+      if(customLinks && Array.isArray(customLinks) && customLinks.length > 0) {
+        if(customLinks[0] && customLinks[0].custom_field) {
+          const customField = customLinks[0].custom_field;
           return customField && customField.type === 'BcCcFile';
         }
       }
       return false;
     } catch (error) {
+      console.error('isFileField error:', error);
       return false;
     }
   }
