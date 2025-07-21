@@ -41,7 +41,7 @@ export const getCustomFieldsTool: ToolDefinition = {
 
 export const addCustomFieldTool: ToolDefinition = {
   name: 'addCustomField',
-  description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg',
+  description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg, CuCcBurgerEditor',
   inputSchema: {
     name: z.string().describe('フィールド名（必須）'),
     title: z.string().describe('フィールドタイトル（必須）'),
@@ -62,7 +62,8 @@ export const addCustomFieldTool: ToolDefinition = {
       'BcCcTel',
       'BcCcText',
       'BcCcTextarea',
-      'BcCcWysiwyg'
+      'BcCcWysiwyg',
+      'CuCcBurgerEditor'
     ]).describe('フィールドタイプ（必須）'),
     source: z.string().optional().describe('選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）')
   },

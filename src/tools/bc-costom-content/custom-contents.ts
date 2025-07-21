@@ -15,11 +15,13 @@ export const addCustomContentTool: ToolDefinition = {
     title: z.string().describe('カスタムコンテンツのタイトル（必須）'),
     custom_table_id: z.number().describe('カスタムテーブルID（必須）'),
     description: z.string().optional().describe('説明文'),
+    template: z.string().optional().default('default').describe('テンプレート名（初期値: default）'),
     list_count: z.number().optional().default(10).describe('リスト表示件数（初期値: 10）'),
     list_order: z.string().optional().default('id').describe('リスト表示順序（初期値: id）'),
     list_direction: z.enum(['ASC', 'DESC']).optional().default('DESC').describe('リスト表示方向（ASC|DESC、初期値: DESC）'),
     site_id: z.number().optional().default(1).describe('サイトID（初期値: 1）'),
     parent_id: z.number().optional().default(1).describe('親フォルダID（初期値: 1）'),
+    status: z.number().optional().describe('ステータス（0: 無効, 1: 有効）')
   },
   
   /**
@@ -33,11 +35,13 @@ export const addCustomContentTool: ToolDefinition = {
     title: string;
     custom_table_id: number; 
     description?: string; 
+    template?: string;
     list_count?: number; 
     list_order?: string; 
     list_direction?: 'ASC' | 'DESC';
     site_id?: number;
     parent_id?: number;
+    status?: number;
   }) {
     try {
       const { 
@@ -45,11 +49,13 @@ export const addCustomContentTool: ToolDefinition = {
         title,
         custom_table_id, 
         description, 
+        template = 'default',
         list_count = 10, 
         list_order = 'id', 
         list_direction = 'DESC',
         site_id = 1,
-        parent_id = 1
+        parent_id = 1,
+        status = 0
       } = input;
       
       if (!custom_table_id) {
@@ -62,7 +68,7 @@ export const addCustomContentTool: ToolDefinition = {
       const customContentData = {
         custom_table_id,
         description: description || '',
-        template: 'default',
+        template,
         widget_area: null,
         list_count,
         list_order,
@@ -71,7 +77,8 @@ export const addCustomContentTool: ToolDefinition = {
           site_id,
           parent_id,
           name,
-          title
+          title,
+          status
         },
         created: new Date().toISOString(),
         modified: new Date().toISOString()

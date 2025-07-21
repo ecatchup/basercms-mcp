@@ -84,6 +84,16 @@ export const addCustomTableTool: ToolDefinition = {
                 }]
               };
             }
+          } else {
+            return {
+              content: [{ 
+                type: 'text' as const, 
+                text: JSON.stringify({
+                  ...customTable,
+                  warning: 'カスタムリンクが作成されませんでした'
+                }, null, 2) 
+              }]
+            };
           }
         } catch (error) {
           // カスタムリンクの作成に失敗した場合でも、カスタムテーブル自体は返す
@@ -123,14 +133,13 @@ export const addCustomTableTool: ToolDefinition = {
   async createCustomLinks(apiClient: ApiClient, customFieldNames: string[]): Promise<any> {
     const customLinks: any = {};
     
-    for (let i = 0; i < customFieldNames.length; i++) {
-      const fieldName = customFieldNames[i];
-      
-      try {
-        // カスタムフィールドの詳細情報を取得
+    try {
+      // 指定された名前のフィールドを検索
+      for (let i = 0; i < customFieldNames.length; i++) {
+        const fieldName = customFieldNames[i];
         const customFields = await getCustomFields(apiClient, { name: fieldName, status: 1 });
         
-        if (customFields && Array.isArray(customFields) && customFields.length > 0) {
+        if (customFields && customFields.length > 0) {
           const customField = customFields[0];
           
           // カスタムリンクデータを作成（オブジェクト形式）
@@ -144,11 +153,10 @@ export const addCustomTableTool: ToolDefinition = {
             title: customField.title
           };
         }
-      } catch (error) {
-        // カスタムフィールドの取得に失敗した場合はスキップ
       }
+    } catch (error) {
+      // カスタムフィールドの取得に失敗した場合はスキップ
     }
-    
     return customLinks;
   }
 };
