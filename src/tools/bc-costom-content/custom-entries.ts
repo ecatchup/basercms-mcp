@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import fs from 'fs';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
-import { ApiClient, addCustomEntry, getCustomEntries } from '@ryuring/basercms-js-sdk';
+import { ApiClient, addCustomEntry, getCustomEntries, getCustomLinks } from '@ryuring/basercms-js-sdk';
 
 /**
  * カスタムエントリー追加ツール
@@ -19,7 +20,7 @@ export const addCustomEntryTool: ToolDefinition = {
     publish_end: z.string().optional().describe('公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'),
     published: z.string().optional().describe('公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'),
     creator_id: z.number().optional().default(1).describe('投稿者ID（デフォルト初期ユーザー）'),
-    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）')
+    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルフィールドの場合は、ファイルパスを指定します')
   },
   
   /**
@@ -63,6 +64,22 @@ export const addCustomEntryTool: ToolDefinition = {
       
       // 公開日のデフォルト値を設定（当日）
       const defaultPublished = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+      // custom_fieldsの各値をファイルパス形式かどうかチェックし、そうである場合は、
+      // isFileField でチェックし、true の場合は、fs.createReadStream(filePath) を使用してファイルを読み込む
+      for (const [fieldName, fieldValue] of Object.entries(custom_fields)) {
+        if (typeof fieldValue === 'string') {
+          // ファイルパスらしいかどうかを判定（スラッシュを含み、拡張子がある場合）
+          const hasSlash = fieldValue.includes('/') || fieldValue.includes('\\');
+          const hasExtension = /\.[a-zA-Z0-9]+$/.test(fieldValue);
+          if (hasSlash && hasExtension) {
+            const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
+            if (isFile) {
+              custom_fields[fieldName] = fs.createReadStream(fieldValue);
+            }
+          }
+        }
+      }
       
       // カスタムエントリーのデータを構築
       const customEntryData = {
@@ -90,7 +107,7 @@ export const addCustomEntryTool: ToolDefinition = {
       if (!customEntry || (customEntry as any).errors) {
         throw new Error('カスタムエントリーの作成に失敗しました: ' + JSON.stringify((customEntry as any)?.errors || 'Unknown error'));
       }
-      
+    
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(customEntry, null, 2) }]
       };
@@ -106,6 +123,32 @@ export const addCustomEntryTool: ToolDefinition = {
     }
   },
 
+  /**
+   * ファイルのフィールドかどうかを確認する
+   * @param customTableId 
+   * @param fieldName 
+   * @returns 
+   */
+  async isFileField(customTableId: number, fieldName: string): Promise<boolean> {
+    try {
+      const apiClient = await createApiClient();
+      const customLink = await getCustomLinks(apiClient, {
+        custom_table_id: customTableId,
+        name: fieldName,
+        contain: 'CustomFields'
+      });
+      
+      if(customLink && Array.isArray(customLink) && customLink.length > 0) {
+        if(customLink[0] && customLink[0].custom_field) {
+          const customField = customLink[0].custom_field;
+          return customField && customField.type === 'BcCcFile';
+        }
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }
 };
 
 /**

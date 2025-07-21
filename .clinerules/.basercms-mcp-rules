@@ -17,13 +17,3 @@ https://github.com/colinhacks/zod/blob/v3.23.8/README.md
 ## カスタムコンテンツの仕様について
 カスタムコンテンツの資料はこちらを参照してください。
 https://baserproject.github.io/5/functions/bc-custom-content/
-
-## 注意事項
-
-### ファイルアップロードについて
-ファイルアップロードの際は、Node.js の場合、fs を利用してアップロードします。
-
-```typescript
-import fs from 'fs';
-const value = fs.createReadStream('./asset_sample/test.jpg');
-```

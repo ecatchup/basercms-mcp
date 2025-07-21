@@ -21,7 +21,7 @@ export const addCustomContentTool: ToolDefinition = {
     list_direction: z.enum(['ASC', 'DESC']).optional().default('DESC').describe('リスト表示方向（ASC|DESC、初期値: DESC）'),
     site_id: z.number().optional().default(1).describe('サイトID（初期値: 1）'),
     parent_id: z.number().optional().default(1).describe('親フォルダID（初期値: 1）'),
-    status: z.number().optional().describe('ステータス（0: 無効, 1: 有効）')
+    status: z.number().optional().describe('公開状態（0: 非公開状態, 1: 公開状態）')
   },
   
   /**
@@ -79,13 +79,11 @@ export const addCustomContentTool: ToolDefinition = {
           name,
           title,
           status
-        },
-        created: new Date().toISOString(),
-        modified: new Date().toISOString()
+        }
       };
       
       // カスタムコンテンツを追加
-      const customContent = await addCustomContentTool.addCustomContent(apiClient, customContentData);
+      const customContent = await addCustomContent(apiClient, customContentData);
       
       // エラーチェック
       if (!customContent || (customContent as any).errors) {
