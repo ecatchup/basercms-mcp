@@ -41,7 +41,7 @@ export const getCustomFieldsTool: ToolDefinition = {
 
 export const addCustomFieldTool: ToolDefinition = {
   name: 'addCustomField',
-  description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg, CuCcBurgerEditor',
+  description: 'カスタムフィールドを追加します。typeには以下の値が指定可能: BcCcAutoZip, BcCcCheckbox, BcCcDate, BcCcDateTime, BcCcEmail, BcCcFile, BcCcHidden, BcCcMultiple, BcCcPassword, BcCcPref, BcCcRadio, BcCcRelated, BcCcSelect, BcCcTel, BcCcText, BcCcTextarea, BcCcWysiwyg, CuCcBurgerEditor（ブロックエディタ）',
   inputSchema: {
     name: z.string().describe('フィールド名（必須）'),
     title: z.string().describe('フィールドタイトル（必須）'),
