@@ -1,6 +1,6 @@
 {
   "name": "@ryuring/basercms-mcp",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "baserCMS の MCPサーバー",
   "main": "dist/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.1",
-    "@ryuring/basercms-js-sdk": "^1.0.9",
+    "@ryuring/basercms-js-sdk": "^1.0.11",
     "axios": "^1.10.0",
     "dotenv": "^17.2.0",
     "openai": "^5.9.2"
