@@ -150,7 +150,9 @@ export const addCustomTableTool: ToolDefinition = {
             display_front: true,
             use_api: true,
             status: true,
-            title: customField.title
+            title: customField.title,
+            search_target_admin: true,
+            search_target_front: true,
           };
         }
       }
