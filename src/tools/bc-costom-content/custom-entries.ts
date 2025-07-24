@@ -20,7 +20,7 @@ export const addCustomEntryTool: ToolDefinition = {
     publish_end: z.string().optional().describe('公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'),
     published: z.string().optional().describe('公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'),
     creator_id: z.number().optional().default(1).describe('投稿者ID（デフォルト初期ユーザー）'),
-    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルフィールドの場合は、参照可能なファイルパスを指定します')
+    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します')
   },
   
   /**
