@@ -76,7 +76,7 @@ export const addCustomEntryTool: ToolDefinition = {
           if (hasSlash && hasExtension && fs.existsSync(fieldValue)) {
             // 既知のファイルフィールド名をチェック
             const knownFileFields = [
-              'product_image', 'main_visual', 'image', 'file', 'photo',
+              'product_image', 'main_visual', 'image', 'file', 'photo', 'main_image',
               'test_image_field' // テスト用フィールド
             ];
             
