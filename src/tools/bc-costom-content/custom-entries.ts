@@ -74,25 +74,15 @@ export const addCustomEntryTool: ToolDefinition = {
           const hasExtension = /\.[a-zA-Z0-9]+$/.test(fieldValue);
           
           if (hasSlash && hasExtension && fs.existsSync(fieldValue)) {
-            // 既知のファイルフィールド名をチェック
-            const knownFileFields = [
-              'product_image', 'main_visual', 'image', 'file', 'photo',
-              'test_image_field' // テスト用フィールド
-            ];
-            
-            if (knownFileFields.includes(fieldName)) {
-              custom_fields[fieldName] = fs.createReadStream(fieldValue);
-            } else {
-              // APIでファイルフィールドかどうかを確認（フォールバック）
-              try {
-                const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
-                if (isFile) {
-                  custom_fields[fieldName] = fs.createReadStream(fieldValue);
-                }
-              } catch (error) {
-                // APIチェックに失敗した場合はそのまま文字列として処理
-                console.error(`Error checking if ${fieldName} is file field:`, error);
+            try {
+              const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
+              if (isFile) {
+                custom_fields[fieldName] = fs.createReadStream(fieldValue);
               }
+            } catch (error) {
+              // APIチェックに失敗した場合はそのまま文字列として処理
+              console.error(`Error checking if ${fieldName} is file field:`, error);
+              custom_fields[fieldName] = '';
             }
           }
         }
@@ -162,7 +152,7 @@ export const addCustomEntryTool: ToolDefinition = {
       return false;
     } catch (error) {
       console.error('isFileField error:', error);
-      return false;
+      throw error;
     }
   }
 };
