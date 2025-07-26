@@ -1,6 +1,6 @@
 {
   "name": "@ryuring/basercms-mcp",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "baserCMS の MCPサーバー",
   "main": "dist/index.js",
   "scripts": {
