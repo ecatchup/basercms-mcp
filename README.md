@@ -78,3 +78,53 @@ MCPサーバーの設定ファイルに設定を記載します。
 }
 ```
 
+## Debugging
+
+`.vscode/launch.json` を以下のように設定します。
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug ts-node",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "program": "${workspaceFolder}/src/index.ts",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+      },
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "args": [
+        "${workspaceFolder}/request.json"
+      ]
+    }
+  ]
+}
+```
+
+request.json ファイルを作成し、以下のように記述します。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "{メソッド名}",
+    "arguments": {
+      "引数1": "引数1の値",
+      "引数2": "引数2の値",
+    }
+  }
+}
+```
+
+ブレークポイントを設定してデバッグを実行します。
