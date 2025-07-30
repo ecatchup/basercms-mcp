@@ -7,7 +7,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { serverConfig } from './config/server';
-import { addBlogPostTool } from './tools/bc-blog/blog-posts';
+import { addBlogPostTool, editBlogPostTool, getBlogPostTool } from './tools/bc-blog/blog-posts';
 import { serverInfoTool } from './tools/system/server-info';
 import { addCustomFieldTool, getCustomFieldsTool } from './tools/bc-costom-content/custom-fields';
 import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
@@ -61,6 +61,8 @@ async function main() {
   // 全ツールを登録
   const allTools = [
     addBlogPostTool,
+    editBlogPostTool,
+    getBlogPostTool,
     addCustomFieldTool,
     addCustomTableTool,
     addCustomContentTool,

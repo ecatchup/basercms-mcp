@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addBlogPost, getBlogContents, getBlogCategories, getUserByEmail } from '@ryuring/basercms-js-sdk';
+import { addBlogPost, getBlogContents, getBlogCategories, getUserByEmail, getBlogPost } from '@ryuring/basercms-js-sdk';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
 import { OpenAIService } from '../../utils/openai';
@@ -130,5 +130,192 @@ export const addBlogPostTool: ToolDefinition = {
     } catch (error) {
       return null;
     }
+  }
+};
+
+/**
+ * ブログ記事取得ツール
+ * baserCMSの単一ブログ記事を取得するためのMCPツール
+ */
+export const getBlogPostTool: ToolDefinition = {
+  name: 'getBlogPost',
+  description: '指定されたIDのブログ記事を取得します',
+  inputSchema: {
+    id: z.number().describe('記事ID（必須）'),
+    blog_content_id: z.number().optional().describe('ブログコンテンツID（省略時はデフォルト）')
+  },
+
+  /**
+   * ブログ記事を取得するハンドラー
+   * @param input 入力パラメータ
+   * @param input.id 記事ID（必須）
+   * @param input.blog_content_id ブログコンテンツID（省略時はデフォルト）
+   * @returns 取得されたブログ記事の情報
+   */
+  handler: async function (input: {
+    id: number;
+    blog_content_id?: number;
+  }) {
+    const { id, blog_content_id } = input;
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    try {
+      // ブログコンテンツIDの解決
+      const resolvedBlogContentId = blog_content_id || 1;
+
+      // ブログ記事を取得（SDKのgetBlogPostを使用）
+      const result = await getBlogPost(apiClient, String(id));
+
+      if (!result) {
+        throw new Error(`ID ${id} のブログ記事が見つかりません`);
+      }
+
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result) }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'ブログ記事の取得に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * ブログ記事編集ツール
+ * baserCMSのブログ記事を編集するためのMCPツール
+ */
+export const editBlogPostTool: ToolDefinition = {
+  name: 'editBlogPost',
+  description: 'ブログ記事を編集します',
+  inputSchema: {
+    id: z.number().describe('記事ID（必須）'),
+    title: z.string().optional().describe('記事タイトル'),
+    detail: z.string().optional().describe('記事詳細'),
+    content: z.string().optional().describe('記事概要'),
+    email: z.string().email().optional().describe('ユーザーのメールアドレス'),
+    category: z.string().optional().describe('カテゴリ名'),
+    blog_content: z.string().optional().describe('ブログコンテンツ名'),
+    status: z.number().optional().describe('公開ステータス（0: 非公開, 1: 公開）'),
+    name: z.string().optional().describe('記事のスラッグ'),
+    eye_catch: z.string().optional().describe('アイキャッチ画像（URL）'),
+    blog_category_id: z.number().optional().describe('カテゴリID（categoryと併用不可）'),
+    user_id: z.number().optional().describe('ユーザーID（emailと併用不可）'),
+    blog_content_id: z.number().optional().describe('ブログコンテンツID（省略時はデフォルト）')
+  },
+
+  /**
+   * ブログ記事を編集するハンドラー
+   * @param input 入力パラメータ
+   * @param input.id 記事ID（必須）
+   * @param input.title 記事タイトル
+   * @param input.detail 記事詳細
+   * @param input.content 記事概要
+   * @param input.email ユーザーのメールアドレス
+   * @param input.category カテゴリ名
+   * @param input.blog_content ブログコンテンツ名
+   * @param input.status 公開ステータス
+   * @param input.name 記事のスラッグ
+   * @param input.eye_catch アイキャッチ画像（URL）
+   * @param input.blog_category_id カテゴリID（categoryと併用不可）
+   * @param input.user_id ユーザーID（emailと併用不可）
+   * @param input.blog_content_id ブログコンテンツID（blog_contentと併用不可）
+   * @returns 編集されたブログ記事の情報
+   */
+  handler: async function (input: {
+    id: number;
+    title?: string;
+    detail?: string;
+    content?: string;
+    email?: string;
+    category?: string;
+    blog_content?: string;
+    status?: number;
+    name?: string;
+    eye_catch?: string;
+    blog_category_id?: number;
+    user_id?: number;
+    blog_content_id?: number;
+  }) {
+    const {
+      id,
+      title,
+      detail,
+      content,
+      email,
+      category,
+      blog_content,
+      status,
+      name,
+      eye_catch,
+      blog_category_id,
+      user_id,
+      blog_content_id
+    } = input;
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    // 編集データを構築
+    const updateData: any = {};
+
+    // 基本フィールドの設定
+    if (title !== undefined) updateData.title = title;
+    if (detail !== undefined) updateData.detail = detail;
+    if (content !== undefined) updateData.content = content;
+    if (status !== undefined) updateData.status = status;
+    if (name !== undefined) updateData.name = name;
+    if (eye_catch !== undefined) updateData.eye_catch = eye_catch;
+
+    // ユーザーIDの解決（直接指定がない場合はemailから取得）
+    if (user_id !== undefined) {
+      updateData.user_id = user_id;
+    } else if (email) {
+      updateData.user_id = await addBlogPostTool.getUserId(apiClient, email);
+    }
+
+    // ブログコンテンツIDの解決（必須フィールド）
+    let resolvedBlogContentId: number;
+    if (blog_content_id !== undefined) {
+      resolvedBlogContentId = blog_content_id;
+    } else if (blog_content) {
+      resolvedBlogContentId = await addBlogPostTool.getBlogContentId(apiClient, blog_content);
+    } else {
+      // どちらも指定されていない場合はデフォルト値（1）を使用
+      resolvedBlogContentId = 1;
+    }
+    updateData.blog_content_id = resolvedBlogContentId;
+
+    // カテゴリIDの解決（直接指定がない場合はcategoryから取得）
+    if (blog_category_id !== undefined) {
+      updateData.blog_category_id = blog_category_id;
+    } else if (category && resolvedBlogContentId) {
+      updateData.blog_category_id = await addBlogPostTool.getCategoryId(apiClient, resolvedBlogContentId, category);
+    }
+
+    // 編集実行（admin権限を明示的に指定、idは文字列に変換）
+    const result = await apiClient.edit({
+      endpoint: "blogPosts",
+      id: String(id),
+      data: updateData,
+      options: { admin: true }
+    });
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(result) }]
+    };
   }
 };
