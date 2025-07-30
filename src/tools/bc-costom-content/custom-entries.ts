@@ -115,7 +115,14 @@ export const addCustomEntryTool: ToolDefinition = {
         content: [{ type: 'text' as const, text: JSON.stringify(customEntry, null, 2) }]
       };
     } catch (error) {
-      throw error;
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'カスタムエントリーの作成に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
     }
   },
 

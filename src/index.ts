@@ -17,10 +17,44 @@ import fs from 'fs';
 import { Readable } from 'stream';
 
 /**
+ * 標準出力をフックしてデバッグコンソールにも出力する
+ */
+function setupStdoutHook() {
+  const originalWrite = process.stdout.write;
+
+  process.stdout.write = function (chunk: any, encoding?: any, callback?: any): boolean {
+    // 元の標準出力への書き込みを実行
+    const result = originalWrite.call(process.stdout, chunk, encoding, callback);
+
+    // デバッグコンソールにも出力（MCPプロトコルのJSONを整形して表示）
+    try {
+      const content = chunk.toString();
+      if (content.trim()) {
+        // JSONかどうかを判定して整形
+        try {
+          const jsonData = JSON.parse(content);
+          console.error(JSON.stringify(jsonData, null, 2));
+        } catch {
+          // JSONでない場合はそのまま表示
+          console.error(content);
+        }
+      }
+    } catch (error) {
+      console.error('標準出力のフック処理でエラー:', error);
+    }
+
+    return result;
+  };
+}
+
+/**
  * メインエントリポイント
  * MCPサーバーを初期化し、利用可能なツールを登録してサーバーを起動する
  */
 async function main() {
+  // 標準出力フックを設定（デバッグ時にツールの戻り値を確認するため）
+  setupStdoutHook();
+
   // MCP サーバーを初期化
   const server = new McpServer(serverConfig);
 
@@ -61,7 +95,6 @@ async function main() {
         .join('');
       const fakeStdin = Readable.from([Buffer.from(requestJson + '\n')]);
       stdioTransport = new StdioServerTransport(fakeStdin, process.stdout);
-      console.log(`🟢 デバッグ（ファイル渡し）モード: ${requestFile} を流し込みます`);
     }
   }
 
@@ -76,4 +109,7 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error('🔴 メインプロセスで致命的なエラーが発生しました:', error);
+  process.exit(1);
+});
