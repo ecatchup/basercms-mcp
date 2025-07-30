@@ -35,7 +35,7 @@ async function main() {
     getCustomEntriesTool,
     serverInfoTool
   ];
-  
+
   allTools.forEach(tool => {
     server.registerTool(
       tool.name,
@@ -53,7 +53,7 @@ async function main() {
 
   if (requestFile) {
     let requestJson = fs.readFileSync(requestFile, 'utf8');
-    if(requestJson !== undefined || requestJson !== null) {
+    if (requestJson !== undefined || requestJson !== null) {
       // ファイルから読み込んだJSONを整形して、複数行に分かれたそれぞれの行の末尾の改行とタブを削除
       requestJson = requestJson
         .split('\n')
@@ -65,7 +65,7 @@ async function main() {
     }
   }
 
-  if(!stdioTransport) {
+  if (!stdioTransport) {
     stdioTransport = new StdioServerTransport();
   }
 

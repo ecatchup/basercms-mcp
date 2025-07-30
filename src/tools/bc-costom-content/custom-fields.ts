@@ -12,7 +12,7 @@ export const getCustomFieldsTool: ToolDefinition = {
     name: z.string().optional().describe('フィールド名での絞り込み'),
     type: z.string().optional().describe('フィールドタイプでの絞り込み')
   },
-  
+
   /**
    * カスタムフィールドの一覧を取得するハンドラー
    * @param input 入力パラメータ
@@ -22,16 +22,16 @@ export const getCustomFieldsTool: ToolDefinition = {
    * @returns カスタムフィールドの一覧
    * @throws エラーが発生した場合は例外をスロー
    */
-  handler: async function(input: { status?: number; name?: string; type?: string; }) {
+  handler: async function (input: { status?: number; name?: string; type?: string; }) {
     const { status, name, type } = input;
     const apiClient = await createApiClient();
-    
+
     // オプションパラメータを構築
     const options: Record<string, any> = {};
     if (status !== undefined) options.status = status;
     if (name) options.name = name;
     if (type) options.type = type;
-    
+
     const result = await getCustomFields(apiClient, options);
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }]
@@ -67,7 +67,7 @@ export const addCustomFieldTool: ToolDefinition = {
     ]).describe('フィールドタイプ（必須）'),
     source: z.string().optional().describe('選択肢（ラジオボタンやセレクトボックスの場合、改行で区切って指定する）')
   },
-  
+
   /**
    * カスタムフィールドを追加するハンドラー
    * @param input 入力パラメータ
@@ -78,7 +78,7 @@ export const addCustomFieldTool: ToolDefinition = {
    * @returns 作成されたカスタムフィールドの情報
    * @throws エラーが発生した場合は例外をスロー
    */
-  handler: async function(input: { name: string; title: string; type: string; source?: string; }) {
+  handler: async function (input: { name: string; title: string; type: string; source?: string; }) {
     const { name, title, type, source } = input;
     if (!name || !title || !type) {
       throw new Error('name, typeは必須です');

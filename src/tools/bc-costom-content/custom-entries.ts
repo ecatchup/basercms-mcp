@@ -2,7 +2,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
-import { ApiClient, addCustomEntry, getCustomEntries, getCustomLinks } from '@ryuring/basercms-js-sdk';
+import { addCustomEntry, getCustomEntries, getCustomLinks } from '@ryuring/basercms-js-sdk';
 
 /**
  * カスタムエントリー追加ツール
@@ -22,13 +22,13 @@ export const addCustomEntryTool: ToolDefinition = {
     creator_id: z.number().optional().default(1).describe('投稿者ID（デフォルト初期ユーザー）'),
     custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します')
   },
-  
+
   /**
    * カスタムエントリーを追加するハンドラー
    * @param input ユーザーからの入力データ
    * @returns 作成されたカスタムエントリーの情報またはエラー
    */
-  handler: async function(input: { 
+  handler: async function (input: {
     custom_table_id: number;
     title: string;
     name?: string;
@@ -40,7 +40,7 @@ export const addCustomEntryTool: ToolDefinition = {
     custom_fields?: Record<string, any>;
   }) {
     try {
-      const { 
+      const {
         custom_table_id,
         title,
         name = '',
@@ -51,17 +51,17 @@ export const addCustomEntryTool: ToolDefinition = {
         creator_id = 1,
         custom_fields = {}
       } = input;
-      
+
       if (!custom_table_id) {
         throw new Error('custom_table_idは必須です');
       }
-      
+
       if (!title) {
         throw new Error('titleは必須です');
       }
-      
+
       const apiClient = await createApiClient();
-      
+
       // 公開日のデフォルト値を設定（当日）
       const defaultPublished = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
@@ -72,14 +72,14 @@ export const addCustomEntryTool: ToolDefinition = {
           // ファイルパスらしいかどうかを判定（スラッシュを含み、拡張子がある場合）
           const hasSlash = fieldValue.includes('/') || fieldValue.includes('\\');
           const hasExtension = /\.[a-zA-Z0-9]+$/.test(fieldValue);
-          
+
           if (hasSlash && hasExtension && fs.existsSync(fieldValue)) {
             // 既知のファイルフィールド名をチェック
             const knownFileFields = [
               'product_image', 'main_visual', 'image', 'file', 'photo', 'main_image',
               'test_image_field' // テスト用フィールド
             ];
-            
+
             if (knownFileFields.includes(fieldName)) {
               custom_fields[fieldName] = fs.createReadStream(fieldValue);
             } else {
@@ -97,7 +97,7 @@ export const addCustomEntryTool: ToolDefinition = {
           }
         }
       }
-      
+
       // カスタムエントリーのデータを構築
       const customEntryData = {
         custom_table_id,
@@ -114,25 +114,25 @@ export const addCustomEntryTool: ToolDefinition = {
         creator_id,
         ...custom_fields // カスタムフィールドの値をマージ
       };
-      
+
       // カスタムエントリーを追加
       const customEntry = await addCustomEntry(apiClient, custom_table_id, customEntryData);
-      
+
       // エラーチェック
       if (!customEntry || (customEntry as any).errors) {
         throw new Error('カスタムエントリーの作成に失敗しました: ' + JSON.stringify((customEntry as any)?.errors || 'Unknown error'));
       }
-    
+
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(customEntry, null, 2) }]
       };
     } catch (error) {
       return {
-        content: [{ 
-          type: 'text' as const, 
+        content: [{
+          type: 'text' as const,
           text: JSON.stringify({
             error: 'カスタムエントリーの作成に失敗しました: ' + (error as Error).message
-          }, null, 2) 
+          }, null, 2)
         }]
       };
     }
@@ -140,9 +140,9 @@ export const addCustomEntryTool: ToolDefinition = {
 
   /**
    * ファイルのフィールドかどうかを確認する
-   * @param customTableId 
-   * @param fieldName 
-   * @returns 
+   * @param customTableId
+   * @param fieldName
+   * @returns
    */
   async isFileField(customTableId: number, fieldName: string): Promise<boolean> {
     try {
@@ -152,9 +152,9 @@ export const addCustomEntryTool: ToolDefinition = {
         name: fieldName,
         contain: 'CustomFields'
       });
-      
-      if(customLinks && Array.isArray(customLinks) && customLinks.length > 0) {
-        if(customLinks[0] && customLinks[0].custom_field) {
+
+      if (customLinks && Array.isArray(customLinks) && customLinks.length > 0) {
+        if (customLinks[0] && customLinks[0].custom_field) {
           const customField = customLinks[0].custom_field;
           return customField && customField.type === 'BcCcFile';
         }
@@ -180,13 +180,13 @@ export const getCustomEntriesTool: ToolDefinition = {
     limit: z.number().optional().default(20).describe('取得件数（デフォルト: 20）'),
     page: z.number().optional().default(1).describe('ページ番号（デフォルト: 1）')
   },
-  
+
   /**
    * カスタムエントリーの一覧を取得するハンドラー
    * @param input 入力パラメータ
    * @returns カスタムエントリーの一覧
    */
-  handler: async function(input: { 
+  handler: async function (input: {
     custom_table_id: number;
     status?: number;
     limit?: number;
@@ -194,40 +194,40 @@ export const getCustomEntriesTool: ToolDefinition = {
   }) {
     try {
       const { custom_table_id, status, limit = 20, page = 1 } = input;
-      
+
       if (!custom_table_id) {
         throw new Error('custom_table_idは必須です');
       }
-      
+
       const apiClient = await createApiClient();
-      
+
       // クエリパラメータを構築
       const queryParams = new URLSearchParams();
       if (status !== undefined) queryParams.append('status', status.toString());
       queryParams.append('limit', limit.toString());
       queryParams.append('page', page.toString());
-      
+
       const queryString = queryParams.toString();
       const url = `/baser-core/bc-custom-content/custom_entries/index/${custom_table_id}.json${queryString ? '?' + queryString : ''}`;
-      
+
       // basercms-js-sdkのgetCustomEntries関数を使用
       const options: Record<string, any> = {};
       if (status !== undefined) options.status = status;
       if (limit !== undefined) options.limit = limit;
       if (page !== undefined) options.page = page;
-      
+
       const entries = await getCustomEntries(apiClient, custom_table_id, options);
-      
+
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(entries, null, 2) }]
       };
     } catch (error) {
       return {
-        content: [{ 
-          type: 'text' as const, 
+        content: [{
+          type: 'text' as const,
           text: JSON.stringify({
             error: 'カスタムエントリーの取得に失敗しました: ' + (error as Error).message
-          }, null, 2) 
+          }, null, 2)
         }]
       };
     }

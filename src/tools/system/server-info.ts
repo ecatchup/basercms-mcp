@@ -9,7 +9,7 @@ export const serverInfoTool: ToolDefinition = {
   name: 'serverInfo',
   description: 'サーバーのバージョンや環境情報を返します',
   inputSchema: {},
-  
+
   /**
    * サーバー情報を取得するハンドラー
    * @returns Node.jsバージョンと環境情報

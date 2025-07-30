@@ -41,7 +41,7 @@ export class OpenAIService {
 
     // 日本語の場合、1トークン ≈ 1.5文字程度として計算
     const targetChars = Math.floor(this.detailMaxTokens * 1.5);
-    
+
     const completion = await this.client.chat.completions.create({
       model: this.model,
       messages: [
@@ -66,7 +66,7 @@ export class OpenAIService {
 
     // 日本語の場合、1トークン ≈ 1.5文字程度として計算
     const targetChars = Math.floor(this.summaryMaxTokens * 1.5);
-    
+
     const summaryCompletion = await this.client.chat.completions.create({
       model: this.model,
       messages: [

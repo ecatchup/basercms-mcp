@@ -23,47 +23,47 @@ export const addCustomContentTool: ToolDefinition = {
     parent_id: z.number().optional().default(1).describe('親フォルダID（初期値: 1）'),
     status: z.number().optional().describe('公開状態（0: 非公開状態, 1: 公開状態）')
   },
-  
+
   /**
    * カスタムコンテンツを追加するハンドラー
    * @param input ユーザーからの入力データ
    * @param input.name カスタムコンテンツ名
    * @returns 作成されたカスタムコンテンツの情報またはエラ
    */
-  handler: async function(input: { 
+  handler: async function (input: {
     name: string;
     title: string;
-    custom_table_id: number; 
-    description?: string; 
+    custom_table_id: number;
+    description?: string;
     template?: string;
-    list_count?: number; 
-    list_order?: string; 
+    list_count?: number;
+    list_order?: string;
     list_direction?: 'ASC' | 'DESC';
     site_id?: number;
     parent_id?: number;
     status?: number;
   }) {
     try {
-      const { 
+      const {
         name,
         title,
-        custom_table_id, 
-        description, 
+        custom_table_id,
+        description,
         template = 'default',
-        list_count = 10, 
-        list_order = 'id', 
+        list_count = 10,
+        list_order = 'id',
         list_direction = 'DESC',
         site_id = 1,
         parent_id = 1,
         status = 0
       } = input;
-      
+
       if (!custom_table_id) {
         throw new Error('custom_table_idは必須です');
       }
-      
+
       const apiClient = await createApiClient();
-      
+
       // カスタムコンテンツのデータを構築
       const customContentData = {
         custom_table_id,
@@ -81,25 +81,25 @@ export const addCustomContentTool: ToolDefinition = {
           status
         }
       };
-      
+
       // カスタムコンテンツを追加
       const customContent = await addCustomContent(apiClient, customContentData);
-      
+
       // エラーチェック
       if (!customContent || (customContent as any).errors) {
         throw new Error('カスタムコンテンツの作成に失敗しました: ' + JSON.stringify((customContent as any)?.errors || 'Unknown error'));
       }
-      
+
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(customContent, null, 2) }]
       };
     } catch (error) {
       return {
-        content: [{ 
-          type: 'text' as const, 
+        content: [{
+          type: 'text' as const,
           text: JSON.stringify({
             error: 'カスタムコンテンツの作成に失敗しました: ' + (error as Error).message
-          }, null, 2) 
+          }, null, 2)
         }]
       };
     }

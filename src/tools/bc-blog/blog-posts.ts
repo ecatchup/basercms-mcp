@@ -18,7 +18,7 @@ export const addBlogPostTool: ToolDefinition = {
     category: z.string().optional().describe('カテゴリ名（省略時はカテゴリなし）'),
     blog_content: z.string().optional().describe('ブログコンテンツ名（省略時はデフォルト）')
   },
-  
+
   /**
    * ブログ記事を追加するハンドラー
    * @param input 入力パラメータ
@@ -29,30 +29,30 @@ export const addBlogPostTool: ToolDefinition = {
    * @param input.blog_content ブログコンテンツ名（省略時はデフォルト）
    * @returns 作成されたブログ記事の情報
    */
-  handler: async function(input: { title: string; detail?: string; email?: string; category?: string; blog_content?: string }) {
+  handler: async function (input: { title: string; detail?: string; email?: string; category?: string; blog_content?: string }) {
     const { title, detail: inputDetail, email, category, blog_content } = input;
-    
+
     if (!title) {
       throw new Error('titleが指定されていません');
     }
 
     const openaiService = new OpenAIService();
     let detail = inputDetail;
-    
+
     if (!detail) {
       detail = await openaiService.generateDetail(title);
     }
-    
+
     const content = await openaiService.generateSummary(detail);
     const apiClient = await createApiClient();
-    
+
     const userId = await addBlogPostTool.getUserId(apiClient, email);
     const blogContentId = await addBlogPostTool.getBlogContentId(apiClient, blog_content);
-    
+
     const categoryId = await addBlogPostTool.getCategoryId(apiClient, blogContentId, category);
-    
+
     const posted = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    
+
     const result = await addBlogPost(apiClient, {
       blog_content_id: blogContentId,
       no: null,
@@ -66,7 +66,7 @@ export const addBlogPostTool: ToolDefinition = {
       eye_catch: '',
       posted
     } as any);
-    
+
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result) }]
     };
@@ -79,7 +79,7 @@ export const addBlogPostTool: ToolDefinition = {
    */
   async getUserId(apiClient: any, email?: string): Promise<number> {
     if (!email) return 1;
-    
+
     try {
       const user = await getUserByEmail(apiClient, email);
       return user?.id || 1;
@@ -96,7 +96,7 @@ export const addBlogPostTool: ToolDefinition = {
    */
   async getBlogContentId(apiClient: any, blogContent?: string): Promise<number> {
     if (!blogContent) return 1;
-    
+
     try {
       const blogContents = await getBlogContents(apiClient, { admin: true, title: blogContent });
       if (blogContents && Array.isArray(blogContents) && blogContents.length > 0) {
@@ -117,11 +117,11 @@ export const addBlogPostTool: ToolDefinition = {
    */
   async getCategoryId(apiClient: any, blogContentId: number, category?: string): Promise<number | null> {
     if (!category) return null;
-    
+
     try {
       const categories = await getBlogCategories(apiClient, blogContentId, { admin: true, title: category });
       if (categories && Array.isArray(categories)) {
-        const foundCategory = categories.find((cat: any) => 
+        const foundCategory = categories.find((cat: any) =>
           cat.name === category || cat.title === category
         );
         return foundCategory?.id || null;
