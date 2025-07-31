@@ -10,7 +10,7 @@ import { serverConfig } from './config/server';
 import { addBlogPostTool, editBlogPostTool, getBlogPostTool, getBlogPostsTool, deleteBlogPostTool } from './tools/bc-blog/blog-posts';
 import { getBlogCategoryTool, getBlogCategoriesTool, addBlogCategoryTool, editBlogCategoryTool, deleteBlogCategoryTool } from './tools/bc-blog/blog-categories';
 import { serverInfoTool } from './tools/system/server-info';
-import { addCustomFieldTool, getCustomFieldsTool, getCustomFieldTool, getIndexCustomFieldsTool, editCustomFieldTool, deleteCustomFieldTool } from './tools/bc-costom-content/custom-fields';
+import { addCustomFieldTool, getCustomFieldsTool, getCustomFieldTool, editCustomFieldTool, deleteCustomFieldTool } from './tools/bc-costom-content/custom-fields';
 import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
 import { addCustomContentTool } from './tools/bc-costom-content/custom-contents';
 import { addCustomEntryTool, getCustomEntriesTool } from './tools/bc-costom-content/custom-entries';
@@ -76,7 +76,6 @@ async function main() {
     addCustomFieldTool,
     getCustomFieldsTool,
     getCustomFieldTool,
-    getIndexCustomFieldsTool,
     editCustomFieldTool,
     deleteCustomFieldTool,
 
