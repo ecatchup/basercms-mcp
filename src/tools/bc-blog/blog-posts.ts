@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addBlogPost, getBlogContents, getBlogCategories, getUserByEmail, getBlogPost } from '@ryuring/basercms-js-sdk';
+import { addBlogPost, getBlogContents, getBlogCategories, getUserByEmail, getBlogPost, getBlogPosts, deleteBlogPost } from '@ryuring/basercms-js-sdk';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
 import { OpenAIService } from '../../utils/openai';
@@ -184,6 +184,137 @@ export const getBlogPostTool: ToolDefinition = {
           type: 'text' as const,
           text: JSON.stringify({
             error: 'ブログ記事の取得に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * ブログ記事一覧取得ツール
+ * baserCMSのブログ記事一覧を取得するためのMCPツール
+ */
+export const getBlogPostsTool: ToolDefinition = {
+  name: 'getBlogPosts',
+  description: 'ブログ記事の一覧を取得します',
+  inputSchema: {
+    blog_content_id: z.number().optional().describe('ブログコンテンツID（省略時はデフォルト）'),
+    limit: z.number().optional().describe('取得件数（省略時は10件）'),
+    page: z.number().optional().describe('ページ番号（省略時は1ページ目）'),
+    keyword: z.string().optional().describe('検索キーワード'),
+    status: z.number().optional().describe('公開ステータス（0: 非公開, 1: 公開）')
+  },
+
+  /**
+   * ブログ記事一覧を取得するハンドラー
+   * @param input 入力パラメータ
+   * @param input.blog_content_id ブログコンテンツID（省略時はデフォルト）
+   * @param input.limit 取得件数（省略時は10件）
+   * @param input.page ページ番号（省略時は1ページ目）
+   * @param input.keyword 検索キーワード
+   * @param input.status 公開ステータス
+   * @returns 取得されたブログ記事一覧の情報
+   */
+  handler: async function (input: {
+    blog_content_id?: number;
+    limit?: number;
+    page?: number;
+    keyword?: string;
+    status?: number;
+  }) {
+    const { blog_content_id, limit, page, keyword, status } = input;
+
+    const apiClient = await createApiClient();
+
+    try {
+      // ブログコンテンツIDの解決
+      const resolvedBlogContentId = blog_content_id || 1;
+
+      // 検索オプションを構築
+      const options: any = {
+        admin: true
+      };
+
+      if (limit !== undefined) options.limit = limit;
+      if (page !== undefined) options.page = page;
+      if (keyword !== undefined) options.keyword = keyword;
+      if (status !== undefined) options.status = status;
+
+      // ブログ記事一覧を取得（SDKのgetBlogPostsを使用）
+      const result = await getBlogPosts(apiClient, options);
+
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result) }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'ブログ記事一覧の取得に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * ブログ記事削除ツール
+ * baserCMSのブログ記事を削除するためのMCPツール
+ */
+export const deleteBlogPostTool: ToolDefinition = {
+  name: 'deleteBlogPost',
+  description: '指定されたIDのブログ記事を削除します',
+  inputSchema: {
+    id: z.number().describe('記事ID（必須）'),
+    blog_content_id: z.number().optional().describe('ブログコンテンツID（省略時はデフォルト）')
+  },
+
+  /**
+   * ブログ記事を削除するハンドラー
+   * @param input 入力パラメータ
+   * @param input.id 記事ID（必須）
+   * @param input.blog_content_id ブログコンテンツID（省略時はデフォルト）
+   * @returns 削除結果の情報
+   */
+  handler: async function (input: {
+    id: number;
+    blog_content_id?: number;
+  }) {
+    const { id, blog_content_id } = input;
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    try {
+      // ブログコンテンツIDの解決
+      const resolvedBlogContentId = blog_content_id || 1;
+
+      // ブログ記事を削除（SDKのdeleteBlogPostを使用）
+      const result = await deleteBlogPost(apiClient, String(id));
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            success: true,
+            message: `記事ID ${id} のブログ記事を削除しました。`,
+            deletedId: id,
+            result: result
+          })
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'ブログ記事の削除に失敗しました: ' + (error as Error).message
           }, null, 2)
         }]
       };
