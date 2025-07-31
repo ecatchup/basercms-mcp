@@ -9,7 +9,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { serverConfig } from './config/server';
 import { addBlogPostTool, editBlogPostTool, getBlogPostTool, getBlogPostsTool, deleteBlogPostTool } from './tools/bc-blog/blog-posts';
 import { serverInfoTool } from './tools/system/server-info';
-import { addCustomFieldTool, getCustomFieldsTool } from './tools/bc-costom-content/custom-fields';
+import { addCustomFieldTool, getCustomFieldsTool, getCustomFieldTool, getIndexCustomFieldsTool, editCustomFieldTool, deleteCustomFieldTool } from './tools/bc-costom-content/custom-fields';
 import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
 import { addCustomContentTool } from './tools/bc-costom-content/custom-contents';
 import { addCustomEntryTool, getCustomEntriesTool } from './tools/bc-costom-content/custom-entries';
@@ -66,10 +66,14 @@ async function main() {
     getBlogPostsTool,
     deleteBlogPostTool,
     addCustomFieldTool,
+    getCustomFieldsTool,
+    getCustomFieldTool,
+    getIndexCustomFieldsTool,
+    editCustomFieldTool,
+    deleteCustomFieldTool,
     addCustomTableTool,
     addCustomContentTool,
     addCustomEntryTool,
-    getCustomFieldsTool,
     getCustomEntriesTool,
     serverInfoTool
   ];
