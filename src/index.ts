@@ -11,8 +11,8 @@ import { addBlogPostTool, editBlogPostTool, getBlogPostTool, getBlogPostsTool, d
 import { getBlogCategoryTool, getBlogCategoriesTool, addBlogCategoryTool, editBlogCategoryTool, deleteBlogCategoryTool } from './tools/bc-blog/blog-categories';
 import { serverInfoTool } from './tools/system/server-info';
 import { addCustomFieldTool, getCustomFieldsTool, getCustomFieldTool, editCustomFieldTool, deleteCustomFieldTool } from './tools/bc-costom-content/custom-fields';
-import { addCustomTableTool } from './tools/bc-costom-content/custom-tables';
-import { addCustomContentTool } from './tools/bc-costom-content/custom-contents';
+import { addCustomTableTool, getCustomTableTool, getCustomTablesTool, editCustomTableTool, deleteCustomTableTool } from './tools/bc-costom-content/custom-tables';
+import { addCustomContentTool, getCustomContentTool, getCustomContentsTool, editCustomContentTool, deleteCustomContentTool } from './tools/bc-costom-content/custom-contents';
 import { addCustomEntryTool, getCustomEntriesTool } from './tools/bc-costom-content/custom-entries';
 import fs from 'fs';
 import { Readable } from 'stream';
@@ -80,7 +80,15 @@ async function main() {
     deleteCustomFieldTool,
 
     addCustomTableTool,
+    getCustomTableTool,
+    getCustomTablesTool,
+    editCustomTableTool,
+    deleteCustomTableTool,
     addCustomContentTool,
+    getCustomContentTool,
+    getCustomContentsTool,
+    editCustomContentTool,
+    deleteCustomContentTool,
     addCustomEntryTool,
     getCustomEntriesTool,
     serverInfoTool
