@@ -2,7 +2,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
-import { addCustomEntry, getCustomEntries, getCustomLinks } from '@ryuring/basercms-js-sdk';
+import { addCustomEntry, getCustomEntries, getCustomEntry, editCustomEntry, deleteCustomEntry, getCustomLinks } from '@ryuring/basercms-js-sdk';
 
 /**
  * カスタムエントリー追加ツール
@@ -215,6 +215,255 @@ export const getCustomEntriesTool: ToolDefinition = {
           type: 'text' as const,
           text: JSON.stringify({
             error: 'カスタムエントリーの取得に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * カスタムエントリー単一取得ツール
+ * baserCMSの単一カスタムエントリーを取得するためのMCPツール
+ */
+export const getCustomEntryTool: ToolDefinition = {
+  name: 'getCustomEntry',
+  description: '指定されたIDのカスタムエントリーを取得します',
+  inputSchema: {
+    custom_table_id: z.number().describe('カスタムテーブルID（必須）'),
+    id: z.number().describe('カスタムエントリーID（必須）')
+  },
+
+  /**
+   * カスタムエントリーを取得するハンドラー
+   * @param input 入力パラメータ
+   * @param input.custom_table_id カスタムテーブルID（必須）
+   * @param input.id カスタムエントリーID（必須）
+   * @returns 取得されたカスタムエントリーの情報
+   */
+  handler: async function (input: {
+    custom_table_id: number;
+    id: number;
+  }) {
+    const { custom_table_id, id } = input;
+
+    if (!custom_table_id) {
+      throw new Error('custom_table_idが指定されていません');
+    }
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    try {
+      // カスタムエントリーを取得（SDKのgetCustomEntryを使用）
+      const result = await getCustomEntry(apiClient, custom_table_id, String(id));
+
+      if (!result) {
+        throw new Error(`ID ${id} のカスタムエントリーが見つかりません`);
+      }
+
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result) }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'カスタムエントリーの取得に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * カスタムエントリー編集ツール
+ * baserCMSのカスタムエントリーを編集するためのMCPツール
+ */
+export const editCustomEntryTool: ToolDefinition = {
+  name: 'editCustomEntry',
+  description: '指定されたIDのカスタムエントリーを編集します',
+  inputSchema: {
+    custom_table_id: z.number().describe('カスタムテーブルID（必須）'),
+    id: z.number().describe('カスタムエントリーID（必須）'),
+    title: z.string().optional().describe('タイトル'),
+    name: z.string().optional().describe('スラッグ'),
+    status: z.boolean().optional().describe('公開状態'),
+    publish_begin: z.string().optional().describe('公開開始日（YYYY-MM-DD HH:mm:ss形式）'),
+    publish_end: z.string().optional().describe('公開終了日（YYYY-MM-DD HH:mm:ss形式）'),
+    published: z.string().optional().describe('公開日（YYYY-MM-DD HH:mm:ss形式）'),
+    creator_id: z.number().optional().describe('投稿者ID'),
+    custom_fields: z.record(z.any()).optional().describe('カスタムフィールドの値（フィールド名をキーとするオブジェクト）')
+  },
+
+  /**
+   * カスタムエントリーを編集するハンドラー
+   * @param input 入力パラメータ
+   * @param input.custom_table_id カスタムテーブルID（必須）
+   * @param input.id カスタムエントリーID（必須）
+   * @param input.title タイトル
+   * @param input.name スラッグ
+   * @param input.status 公開状態
+   * @param input.publish_begin 公開開始日
+   * @param input.publish_end 公開終了日
+   * @param input.published 公開日
+   * @param input.creator_id 投稿者ID
+   * @param input.custom_fields カスタムフィールドの値
+   * @returns 編集されたカスタムエントリーの情報
+   */
+  handler: async function (input: {
+    custom_table_id: number;
+    id: number;
+    title?: string;
+    name?: string;
+    status?: boolean;
+    publish_begin?: string;
+    publish_end?: string;
+    published?: string;
+    creator_id?: number;
+    custom_fields?: Record<string, any>;
+  }) {
+    const {
+      custom_table_id,
+      id,
+      title,
+      name,
+      status,
+      publish_begin,
+      publish_end,
+      published,
+      creator_id,
+      custom_fields = {}
+    } = input;
+
+    if (!custom_table_id) {
+      throw new Error('custom_table_idが指定されていません');
+    }
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    try {
+      // 更新データを構築
+      const updateData: any = {};
+
+      if (title !== undefined) updateData.title = title;
+      if (name !== undefined) updateData.name = name;
+      if (status !== undefined) updateData.status = status;
+      if (publish_begin !== undefined) updateData.publish_begin = publish_begin;
+      if (publish_end !== undefined) updateData.publish_end = publish_end;
+      if (published !== undefined) updateData.published = published;
+      if (creator_id !== undefined) updateData.creator_id = creator_id;
+
+      // カスタムフィールドの処理（ファイルアップロード対応）
+      for (const [fieldName, fieldValue] of Object.entries(custom_fields)) {
+        if (typeof fieldValue === 'string') {
+          const hasSlash = fieldValue.includes('/') || fieldValue.includes('\\');
+          const hasExtension = /\.[a-zA-Z0-9]+$/.test(fieldValue);
+
+          if (hasSlash && hasExtension && fs.existsSync(fieldValue)) {
+            try {
+              const isFile = await addCustomEntryTool.isFileField(custom_table_id, fieldName);
+              if (isFile) {
+                updateData[fieldName] = fs.createReadStream(fieldValue);
+              } else {
+                updateData[fieldName] = fieldValue;
+              }
+            } catch (error) {
+              updateData[fieldName] = fieldValue;
+            }
+          } else {
+            updateData[fieldName] = fieldValue;
+          }
+        } else {
+          updateData[fieldName] = fieldValue;
+        }
+      }
+
+      updateData.modified = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+      // カスタムエントリーを編集（SDKのeditCustomEntryを使用）
+      const result = await editCustomEntry(apiClient, custom_table_id, String(id), updateData);
+
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(result) }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'カスタムエントリーの編集に失敗しました: ' + (error as Error).message
+          }, null, 2)
+        }]
+      };
+    }
+  }
+};
+
+/**
+ * カスタムエントリー削除ツール
+ * baserCMSのカスタムエントリーを削除するためのMCPツール
+ */
+export const deleteCustomEntryTool: ToolDefinition = {
+  name: 'deleteCustomEntry',
+  description: '指定されたIDのカスタムエントリーを削除します',
+  inputSchema: {
+    custom_table_id: z.number().describe('カスタムテーブルID（必須）'),
+    id: z.number().describe('カスタムエントリーID（必須）')
+  },
+
+  /**
+   * カスタムエントリーを削除するハンドラー
+   * @param input 入力パラメータ
+   * @param input.custom_table_id カスタムテーブルID（必須）
+   * @param input.id カスタムエントリーID（必須）
+   * @returns 削除結果の情報
+   */
+  handler: async function (input: {
+    custom_table_id: number;
+    id: number;
+  }) {
+    const { custom_table_id, id } = input;
+
+    if (!custom_table_id) {
+      throw new Error('custom_table_idが指定されていません');
+    }
+
+    if (!id) {
+      throw new Error('idが指定されていません');
+    }
+
+    const apiClient = await createApiClient();
+
+    try {
+      // カスタムエントリーを削除（SDKのdeleteCustomEntryを使用）
+      const result = await deleteCustomEntry(apiClient, custom_table_id, String(id));
+
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            success: true,
+            message: `カスタムエントリー ID ${id} を削除しました`,
+            data: result
+          }, null, 2)
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify({
+            error: 'カスタムエントリーの削除に失敗しました: ' + (error as Error).message
           }, null, 2)
         }]
       };

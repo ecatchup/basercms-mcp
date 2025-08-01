@@ -9,11 +9,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { serverConfig } from './config/server';
 import { addBlogPostTool, editBlogPostTool, getBlogPostTool, getBlogPostsTool, deleteBlogPostTool } from './tools/bc-blog/blog-posts';
 import { getBlogCategoryTool, getBlogCategoriesTool, addBlogCategoryTool, editBlogCategoryTool, deleteBlogCategoryTool } from './tools/bc-blog/blog-categories';
+import { getBlogTagTool, getBlogTagsTool, addBlogTagTool, editBlogTagTool, deleteBlogTagTool } from './tools/bc-blog/blog-tags';
+import { getBlogContentTool, getBlogContentsTool, addBlogContentTool, editBlogContentTool, deleteBlogContentTool } from './tools/bc-blog/blog-contents';
 import { serverInfoTool } from './tools/system/server-info';
 import { addCustomFieldTool, getCustomFieldsTool, getCustomFieldTool, editCustomFieldTool, deleteCustomFieldTool } from './tools/bc-costom-content/custom-fields';
 import { addCustomTableTool, getCustomTableTool, getCustomTablesTool, editCustomTableTool, deleteCustomTableTool } from './tools/bc-costom-content/custom-tables';
 import { addCustomContentTool, getCustomContentTool, getCustomContentsTool, editCustomContentTool, deleteCustomContentTool } from './tools/bc-costom-content/custom-contents';
-import { addCustomEntryTool, getCustomEntriesTool } from './tools/bc-costom-content/custom-entries';
+import { addCustomEntryTool, getCustomEntriesTool, getCustomEntryTool, editCustomEntryTool, deleteCustomEntryTool } from './tools/bc-costom-content/custom-entries';
+import { getCustomLinkTool, getCustomLinksTool, addCustomLinkTool, editCustomLinkTool, deleteCustomLinkTool } from './tools/bc-costom-content/custom-links';
 import fs from 'fs';
 import { Readable } from 'stream';
 
@@ -73,6 +76,18 @@ async function main() {
     editBlogCategoryTool,
     deleteBlogCategoryTool,
 
+    getBlogTagTool,
+    getBlogTagsTool,
+    addBlogTagTool,
+    editBlogTagTool,
+    deleteBlogTagTool,
+
+    getBlogContentTool,
+    getBlogContentsTool,
+    addBlogContentTool,
+    editBlogContentTool,
+    deleteBlogContentTool,
+
     addCustomFieldTool,
     getCustomFieldsTool,
     getCustomFieldTool,
@@ -91,6 +106,14 @@ async function main() {
     deleteCustomContentTool,
     addCustomEntryTool,
     getCustomEntriesTool,
+    getCustomEntryTool,
+    editCustomEntryTool,
+    deleteCustomEntryTool,
+    getCustomLinkTool,
+    getCustomLinksTool,
+    addCustomLinkTool,
+    editCustomLinkTool,
+    deleteCustomLinkTool,
     serverInfoTool
   ];
 
