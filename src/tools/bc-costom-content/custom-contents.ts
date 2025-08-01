@@ -9,7 +9,7 @@ import { ApiClient, addCustomContent, getCustomContents, getCustomContent, editC
  */
 export const addCustomContentTool: ToolDefinition = {
   name: 'addCustomContent',
-  description: 'カスタムコンテンツを追加します',
+  description: 'カスタムコンテンツを追加します。カスタムコンテンツを追加するにはカスタムテーブルのIDが必要です。事前に作成するか既存のカスタムテーブルIDを指定してください。',
   inputSchema: {
     name: z.string().describe('カスタムコンテンツ名、URLに影響します（必須）'),
     title: z.string().describe('カスタムコンテンツのタイトル（必須）'),

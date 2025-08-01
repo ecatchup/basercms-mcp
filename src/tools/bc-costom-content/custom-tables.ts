@@ -6,7 +6,7 @@ import { ApiClient } from '@ryuring/basercms-js-sdk';
 
 export const addCustomTableTool: ToolDefinition = {
   name: 'addCustomTable',
-  description: 'カスタムテーブルを追加し、指定されたカスタムフィールドを関連付けます',
+  description: 'カスタムテーブルを追加し、指定されたカスタムフィールドを関連付けます。フィールドを関連付けるためには、事前にカスタムフィールドが作成されている必要があります。',
   inputSchema: {
     name: z.string().describe('テーブル名（必須）'),
     title: z.string().describe('テーブルタイトル（必須）'),

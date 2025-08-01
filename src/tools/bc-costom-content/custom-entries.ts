@@ -10,7 +10,7 @@ import { addCustomEntry, getCustomEntries, getCustomEntry, editCustomEntry, dele
  */
 export const addCustomEntryTool: ToolDefinition = {
   name: 'addCustomEntry',
-  description: 'カスタムエントリーを追加します',
+  description: 'カスタムエントリーを追加します。カスタムエントリーを追加するには、カスタムテーブルが必要です。事前に作成するか既存のカスタムテーブルIDを指定してください。フロントエンドに表示させるには、カスタムテーブルがカスタムコンテンツと紐づいている必要があります。',
   inputSchema: {
     custom_table_id: z.number().describe('カスタムテーブルID（必須）'),
     title: z.string().describe('タイトル（必須）'),
