@@ -64,56 +64,61 @@ async function main() {
 
   // 全ツールを登録
   const allTools = [
+    // ブログ記事関連ツール
     addBlogPostTool,
     editBlogPostTool,
     getBlogPostTool,
     getBlogPostsTool,
     deleteBlogPostTool,
-
+    // ブログカテゴリ関連ツール
     getBlogCategoryTool,
     getBlogCategoriesTool,
     addBlogCategoryTool,
     editBlogCategoryTool,
     deleteBlogCategoryTool,
-
+    // ブログタグ関連ツール
     getBlogTagTool,
     getBlogTagsTool,
     addBlogTagTool,
     editBlogTagTool,
     deleteBlogTagTool,
-
+    // ブログコンテンツ関連ツール
     getBlogContentTool,
     getBlogContentsTool,
     addBlogContentTool,
     editBlogContentTool,
     deleteBlogContentTool,
-
+    // カスタムフィールド関連ツール
     addCustomFieldTool,
     getCustomFieldsTool,
     getCustomFieldTool,
     editCustomFieldTool,
     deleteCustomFieldTool,
-
+    // カスタムテーブル関連ツール
     addCustomTableTool,
     getCustomTableTool,
     getCustomTablesTool,
     editCustomTableTool,
     deleteCustomTableTool,
+    // カスタムコンテンツ関連ツール
     addCustomContentTool,
     getCustomContentTool,
     getCustomContentsTool,
     editCustomContentTool,
     deleteCustomContentTool,
+    // カスタムエントリー関連ツール
     addCustomEntryTool,
     getCustomEntriesTool,
     getCustomEntryTool,
     editCustomEntryTool,
     deleteCustomEntryTool,
+    // カスタムリンク関連ツール
     getCustomLinkTool,
     getCustomLinksTool,
     addCustomLinkTool,
     editCustomLinkTool,
     deleteCustomLinkTool,
+    // システム情報ツール
     serverInfoTool
   ];
 
