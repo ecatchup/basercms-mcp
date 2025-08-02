@@ -24,7 +24,7 @@ cp .env.example .env
 MCPサーバーの設定ファイルに設定を記載します。
 
 ```
-.vscode/mcp.json
+~/Library/Application Support/Code/User/mcp.json
 ```
 
 ```json
@@ -47,7 +47,7 @@ MCPサーバーの設定ファイルに設定を記載します。
 
 ```
 # MacOSの場合
-/Users/{username}/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
+~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json
 ```
 
 ```json
@@ -67,6 +67,33 @@ MCPサーバーの設定ファイルに設定を記載します。
 }
 ```
 
+### Claude Desktopの場合
+MCPサーバーの設定ファイルに設定を記載します。  
+開発プロジェクト内での利用ではないため、環境変数を記載します。
+
+```
+# MacOSの場合
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+```json
+{
+  "mcpServers": {
+    "basercms-mcp-for-claude": {
+      "command": "node",
+      "args": [
+        "{basercms-mcpの設置フォルダ}/dist/index.js"
+      ],
+      "cwd": "{basercms-mcpの設置フォルダ}",
+      "env": {
+        "API_BASE_URL": "{操作対象のサーバーのURL（例：https://localhost/）",
+        "API_USER": "{baserCMSのログインユーザー名（メールアドレス）}",
+        "API_PASSWORD": "{baserCMSのログインパスワード}"
+      }
+    }
+  }
+}
+```
 
 
 ## Usage
