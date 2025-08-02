@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { addBlogPost, getBlogContents, getBlogCategories, getUserByEmail, getBlogPost, getBlogPosts, deleteBlogPost } from '@ryuring/basercms-js-sdk';
 import { ToolDefinition } from '../../types/tool';
 import { createApiClient } from '../../utils/api-client';
-import { OpenAIService } from '../../utils/openai';
 
 /**
  * ブログ投稿ツール
@@ -13,7 +12,7 @@ export const addBlogPostTool: ToolDefinition = {
   description: 'ブログ記事を追加します',
   inputSchema: {
     title: z.string().describe('記事タイトル（必須）'),
-    detail: z.string().optional().describe('記事詳細（省略時はAIで生成）'),
+    detail: z.string().describe('記事詳細（必須）'),
     email: z.string().email().optional().describe('ユーザーのメールアドレス（省略時はデフォルトユーザー）'),
     category: z.string().optional().describe('カテゴリ名（省略時はカテゴリなし）'),
     blog_content: z.string().optional().describe('ブログコンテンツ名（省略時はデフォルト）')
@@ -23,27 +22,23 @@ export const addBlogPostTool: ToolDefinition = {
    * ブログ記事を追加するハンドラー
    * @param input 入力パラメータ
    * @param input.title 記事タイトル（必須）
-   * @param input.detail 記事詳細（省略時はAIで生成）
+   * @param input.detail 記事詳細（必須）
    * @param input.email ユーザーのメールアドレス（省略時はデフォルトユーザー）
    * @param input.category カテゴリ名（省略時はカテゴリなし）
    * @param input.blog_content ブログコンテンツ名（省略時はデフォルト）
    * @returns 作成されたブログ記事の情報
    */
-  handler: async function (input: { title: string; detail?: string; email?: string; category?: string; blog_content?: string }) {
-    const { title, detail: inputDetail, email, category, blog_content } = input;
+  handler: async function (input: { title: string; detail: string; email?: string; category?: string; blog_content?: string }) {
+    const { title, detail, email, category, blog_content } = input;
 
     if (!title) {
       throw new Error('titleが指定されていません');
     }
 
-    const openaiService = new OpenAIService();
-    let detail = inputDetail;
-
     if (!detail) {
-      detail = await openaiService.generateDetail(title);
+      throw new Error('detailが指定されていません');
     }
 
-    const content = await openaiService.generateSummary(detail);
     const apiClient = await createApiClient();
 
     const userId = await addBlogPostTool.getUserId(apiClient, email);
@@ -58,7 +53,7 @@ export const addBlogPostTool: ToolDefinition = {
       no: null,
       name: '',
       title,
-      content,
+      content: '',
       detail,
       blog_category_id: categoryId,
       user_id: userId,
