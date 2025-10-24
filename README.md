@@ -5,7 +5,7 @@ baserCMSを操作するためのModel Context Protocol (MCP) サーバー実装�
 ## Installation
 
 ```bash
-npm install basercms-mcp
+npm install @ecatchup/basercms-mcp
 ```
 
 `.env` ファイルを作成して必要な環境変数を設定
